@@ -46,6 +46,14 @@ const videos = [
     duration: "07:39",
     date: "24 jul",
     thumb: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800&auto=format&fit=crop"
+  },
+  {
+    title: "Ser dono do seu meio de produção como dev solo",
+    category: "politica",
+    categoryLabel: "Política",
+    duration: "16:21",
+    date: "09 set",
+    thumb: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?q=80&w=800&auto=format&fit=crop"
   }
 ];
 
