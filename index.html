@@ -5,23 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Saburi — Vídeos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <header class="site-header">
-  <a href="#" class="brand">
-    <svg class="emblem" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="50" cy="50" r="46" fill="none" stroke="var(--mustard)" stroke-width="3"/>
-      <g stroke="var(--mustard)" fill="none" stroke-width="6" stroke-linecap="round">
-        <line x1="28" y1="30" x2="66" y2="68"/>
-      </g>
-      <rect x="60" y="22" width="10" height="20" fill="var(--mustard)" transform="rotate(45 65 32)"/>
-      <path d="M70 62 a16 16 0 1 1 -10 -15" fill="none" stroke="var(--mustard)" stroke-width="6" stroke-linecap="round"/>
-    </svg>
-    SABURI<span>/PLAY</span>
-  </a>
+  <a href="#" class="brand">Saburi<span>/play</span></a>
   <nav class="site-nav">
     <a href="#catalogo">Catálogo</a>
     <a href="#sobre">Sobre</a>
@@ -32,52 +22,37 @@
 <main>
 
   <section class="hero" id="hero">
-    <div class="flag-corner" aria-hidden="true">
-      <svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="0,0 120,0 0,90" fill="var(--red)"/>
-        <text x="18" y="30" font-size="34" fill="var(--mustard)" font-family="Oswald, sans-serif">★</text>
-      </svg>
-    </div>
     <div class="hero-video">
       <div class="thumb-frame" id="hero-thumb">
-        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop" alt="Thumbnail do vídeo em destaque">
-        <button class="play-btn" aria-label="Reproduzir vídeo">▶</button>
-        <span class="duration">12:47</span>
+        <img id="hero-thumb-img" src="" alt="Thumbnail do vídeo em destaque">
+        <a id="hero-play" class="play-btn" href="#" target="_blank" rel="noopener" aria-label="Assistir vídeo">▶</a>
       </div>
     </div>
     <div class="hero-info">
-      <p class="eyebrow-plain">VÍDEO EM DESTAQUE</p>
-      <h1>Como eu construí um sistema de análise de processos do zero</h1>
-      <p class="hero-desc">Do primeiro commit ao primeiro cliente: as decisões técnicas, os erros e o que eu faria diferente hoje.</p>
-      <div class="hero-meta">
-        <span>Publicado em 3 de setembro</span>
-        <span class="dot-sep">•</span>
-        <span>Desenvolvimento</span>
-      </div>
+      <p class="eyebrow-plain">Vídeo em destaque</p>
+      <h1 id="hero-title">Carregando…</h1>
+      <p class="hero-desc" id="hero-desc"></p>
+      <div class="hero-meta" id="hero-meta"></div>
     </div>
   </section>
 
   <section class="catalogo" id="catalogo">
     <div class="section-head">
       <h2>Catálogo</h2>
-      <div class="filters">
+      <div class="filters" id="filters">
         <button class="filter active" data-filter="todos">Todos</button>
-        <button class="filter" data-filter="dev">Desenvolvimento</button>
-        <button class="filter" data-filter="qualidade">Qualidade</button>
-        <button class="filter" data-filter="bastidores">Bastidores</button>
-        <button class="filter" data-filter="politica">Política</button>
       </div>
     </div>
 
     <div class="video-grid" id="video-grid">
-      <!-- os cartões de vídeo são injetados via script.js -->
+      <p class="loading-msg" id="loading-msg">Carregando vídeos…</p>
     </div>
   </section>
 
   <section class="sobre" id="sobre">
     <div class="sobre-text">
       <h2>Sobre o canal</h2>
-      <p>Desenvolvedor construindo produtos próprios — SSGF, SSAP e o que vier depois — e documentando o processo real: código, decisões de produto e o dia a dia de tocar um negócio de software sozinho. Sem plataforma alheia decidindo o que meu público vê.</p>
+      <p>Desenvolvedor construindo produtos próprios — SSGF, SSAP e o que vier depois — e documentando o processo real: código, decisões de produto e o dia a dia de tocar um negócio de software sozinho.</p>
     </div>
     <div class="sobre-stats">
       <div class="stat">
@@ -94,13 +69,15 @@
 </main>
 
 <footer class="site-footer" id="contato">
-  <div class="footer-brand"><span class="star">★</span>SABURI<span>/PLAY</span></div>
+  <div class="footer-brand">Saburi<span>/play</span></div>
   <div class="footer-links">
     <a href="https://ssgf.com.br" target="_blank" rel="noopener">ssgf.com.br</a>
     <a href="#">contato</a>
   </div>
 </footer>
 
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

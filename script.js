@@ -1,90 +1,99 @@
-const videos = [
-  {
-    title: "Migrando o SSGF de sb.from() pra um padrão sbREST",
-    category: "dev",
-    categoryLabel: "Desenvolvimento",
-    duration: "18:32",
-    date: "28 ago",
-    thumb: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    title: "O que eu aprendi estudando Green Belt aplicado a software",
-    category: "qualidade",
-    categoryLabel: "Qualidade",
-    duration: "09:14",
-    date: "22 ago",
-    thumb: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    title: "Um dia inteiro tocando SSAP sozinho",
-    category: "bastidores",
-    categoryLabel: "Bastidores",
-    duration: "14:05",
-    date: "15 ago",
-    thumb: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    title: "Por que troquei a arquitetura de módulos do SSAP",
-    category: "dev",
-    categoryLabel: "Desenvolvimento",
-    duration: "21:47",
-    date: "08 ago",
-    thumb: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    title: "Mapeando processo com ferramentas de qualidade na prática",
-    category: "qualidade",
-    categoryLabel: "Qualidade",
-    duration: "11:58",
-    date: "01 ago",
-    thumb: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    title: "Como decido o que construir a seguir",
-    category: "bastidores",
-    categoryLabel: "Bastidores",
-    duration: "07:39",
-    date: "24 jul",
-    thumb: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800&auto=format&fit=crop"
-  },
-  {
-    title: "Ser dono do seu meio de produção como dev solo",
-    category: "politica",
-    categoryLabel: "Política",
-    duration: "16:21",
-    date: "09 set",
-    thumb: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?q=80&w=800&auto=format&fit=crop"
-  }
-];
-
 const grid = document.getElementById("video-grid");
-const filterButtons = document.querySelectorAll(".filter");
+const filtersWrap = document.getElementById("filters");
+const loadingMsg = document.getElementById("loading-msg");
 
-function renderVideos(filter) {
+let allVideos = [];
+
+function youtubeThumb(youtubeId) {
+  return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+}
+
+function youtubeWatchUrl(youtubeId) {
+  return `https://www.youtube.com/watch?v=${youtubeId}`;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
+}
+
+function renderHero(video) {
+  if (!video) return;
+  document.getElementById("hero-thumb-img").src = youtubeThumb(video.youtube_id);
+  document.getElementById("hero-play").href = youtubeWatchUrl(video.youtube_id);
+  document.getElementById("hero-title").textContent = video.title;
+  document.getElementById("hero-desc").textContent = video.description || "";
+  document.getElementById("hero-meta").innerHTML =
+    `<span>Publicado em ${formatDate(video.published_at)}</span><span class="dot-sep">•</span><span>${video.category}</span>`;
+}
+
+function renderFilters(categories) {
+  filtersWrap.innerHTML = `<button class="filter active" data-filter="todos">Todos</button>`;
+  categories.forEach(cat => {
+    const btn = document.createElement("button");
+    btn.className = "filter";
+    btn.dataset.filter = cat;
+    btn.textContent = cat;
+    filtersWrap.appendChild(btn);
+  });
+
+  filtersWrap.querySelectorAll(".filter").forEach(btn => {
+    btn.addEventListener("click", () => {
+      filtersWrap.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderGrid(btn.dataset.filter);
+    });
+  });
+}
+
+function renderGrid(filter) {
+  const list = filter === "todos" ? allVideos : allVideos.filter(v => v.category === filter);
   grid.innerHTML = "";
-  const list = filter === "todos" ? videos : videos.filter(v => v.category === filter);
+
+  if (list.length === 0) {
+    grid.innerHTML = `<p class="empty-msg">Nenhum vídeo nessa categoria ainda.</p>`;
+    return;
+  }
 
   list.forEach(video => {
     const card = document.createElement("article");
     card.className = "video-card";
     card.innerHTML = `
-      <div class="thumb-frame">
-        <img src="${video.thumb}" alt="Thumbnail: ${video.title}">
-        <span class="duration">${video.duration}</span>
-      </div>
-      <h3>${video.title}</h3>
-      <div class="card-meta">${video.date} · ${video.categoryLabel}</div>
+      <a href="${youtubeWatchUrl(video.youtube_id)}" target="_blank" rel="noopener">
+        <div class="thumb-frame">
+          <img src="${youtubeThumb(video.youtube_id)}" alt="Thumbnail: ${video.title}">
+        </div>
+        <h3>${video.title}</h3>
+        <div class="card-meta">${formatDate(video.published_at)} · ${video.category}</div>
+      </a>
     `;
     grid.appendChild(card);
   });
 }
 
-filterButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    filterButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    renderVideos(btn.dataset.filter);
-  });
-});
+async function loadVideos() {
+  const { data, error } = await sb
+    .from("videos")
+    .select("*")
+    .order("published_at", { ascending: false });
 
-renderVideos("todos");
+  if (error) {
+    loadingMsg.textContent = "Não deu pra carregar os vídeos agora. Confira a configuração do Supabase.";
+    console.error(error);
+    return;
+  }
+
+  allVideos = data || [];
+
+  if (allVideos.length === 0) {
+    loadingMsg.textContent = "Nenhum vídeo cadastrado ainda. Adicione pelo painel /admin.html.";
+    return;
+  }
+
+  const categories = [...new Set(allVideos.map(v => v.category))];
+  renderFilters(categories);
+  renderHero(allVideos[0]);
+  renderGrid("todos");
+}
+
+loadVideos();
