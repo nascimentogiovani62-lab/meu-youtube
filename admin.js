@@ -79,7 +79,7 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  showStatus("Vídeo salvo! Já aparece no site.", true);
+  showStatus("Vídeo salvo! Já pode gozar.", true);
   form.reset();
   document.getElementById("published-at").valueAsDate = new Date();
   loadList();
