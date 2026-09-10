@@ -60,10 +60,27 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  let thumbnailUrl = null;
+  const thumbFile = document.getElementById("thumbnail-file").files[0];
+
+  if (thumbFile) {
+    const filePath = `${Date.now()}-${thumbFile.name}`;
+    const { error: uploadError } = await sb.storage.from("thumbnails").upload(filePath, thumbFile);
+
+    if (uploadError) {
+      showStatus("Não deu pra subir a thumbnail. Confira se o bucket 'thumbnails' existe e é público.", false);
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const { data: publicUrlData } = sb.storage.from("thumbnails").getPublicUrl(filePath);
+    thumbnailUrl = publicUrlData.publicUrl;
+  }
+
   const newVideo = {
     title: document.getElementById("title").value.trim(),
     stream_url: streamUrl,
-    thumbnail_url: document.getElementById("thumbnail-url").value.trim() || null,
+    thumbnail_url: thumbnailUrl,
     category: document.getElementById("category").value.trim(),
     description: document.getElementById("description").value.trim(),
     published_at: document.getElementById("published-at").value
@@ -79,7 +96,7 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  showStatus("Vídeo salvo! Já pode gozar.", true);
+  showStatus("Vídeo salvo! Já aparece no site.", true);
   form.reset();
   document.getElementById("published-at").valueAsDate = new Date();
   loadList();
