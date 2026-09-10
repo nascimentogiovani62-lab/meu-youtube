@@ -1,30 +1,39 @@
 const grid = document.getElementById("video-grid");
 const filtersWrap = document.getElementById("filters");
 const loadingMsg = document.getElementById("loading-msg");
+const heroPlayer = document.getElementById("hero-player");
 
 let allVideos = [];
-
-function youtubeThumb(youtubeId) {
-  return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
-}
-
-function youtubeWatchUrl(youtubeId) {
-  return `https://www.youtube.com/watch?v=${youtubeId}`;
-}
+let heroHls = null;
 
 function formatDate(dateStr) {
   const d = new Date(dateStr);
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
 }
 
-function renderHero(video) {
-  if (!video) return;
-  document.getElementById("hero-thumb-img").src = youtubeThumb(video.youtube_id);
-  document.getElementById("hero-play").href = youtubeWatchUrl(video.youtube_id);
+function loadIntoPlayer(video) {
+  if (heroHls) {
+    heroHls.destroy();
+    heroHls = null;
+  }
+
+  if (Hls.isSupported()) {
+    heroHls = new Hls();
+    heroHls.loadSource(video.stream_url);
+    heroHls.attachMedia(heroPlayer);
+  } else if (heroPlayer.canPlayType("application/vnd.apple.mpegurl")) {
+    // Safari toca HLS nativamente
+    heroPlayer.src = video.stream_url;
+  }
+
+  if (video.thumbnail_url) heroPlayer.poster = video.thumbnail_url;
+
   document.getElementById("hero-title").textContent = video.title;
   document.getElementById("hero-desc").textContent = video.description || "";
   document.getElementById("hero-meta").innerHTML =
     `<span>Publicado em ${formatDate(video.published_at)}</span><span class="dot-sep">•</span><span>${video.category}</span>`;
+
+  document.getElementById("hero").scrollIntoView({ behavior: "smooth" });
 }
 
 function renderFilters(categories) {
@@ -59,14 +68,13 @@ function renderGrid(filter) {
     const card = document.createElement("article");
     card.className = "video-card";
     card.innerHTML = `
-      <a href="${youtubeWatchUrl(video.youtube_id)}" target="_blank" rel="noopener">
-        <div class="thumb-frame">
-          <img src="${youtubeThumb(video.youtube_id)}" alt="Thumbnail: ${video.title}">
-        </div>
-        <h3>${video.title}</h3>
-        <div class="card-meta">${formatDate(video.published_at)} · ${video.category}</div>
-      </a>
+      <div class="thumb-frame">
+        ${video.thumbnail_url ? `<img src="${video.thumbnail_url}" alt="Thumbnail: ${video.title}">` : `<div class="no-thumb">▶</div>`}
+      </div>
+      <h3>${video.title}</h3>
+      <div class="card-meta">${formatDate(video.published_at)} · ${video.category}</div>
     `;
+    card.addEventListener("click", () => loadIntoPlayer(video));
     grid.appendChild(card);
   });
 }
@@ -83,7 +91,7 @@ async function loadVideos() {
     return;
   }
 
-  allVideos = data || [];
+  allVideos = (data || []).filter(v => v.stream_url);
 
   if (allVideos.length === 0) {
     loadingMsg.textContent = "Nenhum vídeo cadastrado ainda. Adicione pelo painel /admin.html.";
@@ -92,7 +100,7 @@ async function loadVideos() {
 
   const categories = [...new Set(allVideos.map(v => v.category))];
   renderFilters(categories);
-  renderHero(allVideos[0]);
+  loadIntoPlayer(allVideos[0]);
   renderGrid("todos");
 }
 
