@@ -74,13 +74,16 @@ a { color: inherit; text-decoration: none; }
   background: var(--bg-panel);
 }
 
-.thumb-frame img {
+.thumb-frame img,
+.thumb-frame video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: saturate(0.85) brightness(0.85);
+  background: #000;
 }
+
+.thumb-frame img { filter: saturate(0.85) brightness(0.85); }
 
 .play-btn {
   position: absolute;
