@@ -5,19 +5,6 @@ const videoList = document.getElementById("video-list");
 
 document.getElementById("published-at").valueAsDate = new Date();
 
-function extractYoutubeId(url) {
-  const patterns = [
-    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-    /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/
-  ];
-  for (const p of patterns) {
-    const match = url.match(p);
-    if (match) return match[1];
-  }
-  return null;
-}
-
 function showStatus(message, ok) {
   statusMsg.textContent = message;
   statusMsg.className = "status-msg " + (ok ? "ok" : "error");
@@ -65,18 +52,18 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   submitBtn.disabled = true;
 
-  const youtubeUrl = document.getElementById("youtube-url").value.trim();
-  const youtubeId = extractYoutubeId(youtubeUrl);
+  const streamUrl = document.getElementById("stream-url").value.trim();
 
-  if (!youtubeId) {
-    showStatus("Não reconheci esse link do YouTube. Confira e tenta de novo.", false);
+  if (!streamUrl.endsWith(".m3u8")) {
+    showStatus("O link precisa terminar em .m3u8 (o arquivo que o ffmpeg gerou).", false);
     submitBtn.disabled = false;
     return;
   }
 
   const newVideo = {
     title: document.getElementById("title").value.trim(),
-    youtube_id: youtubeId,
+    stream_url: streamUrl,
+    thumbnail_url: document.getElementById("thumbnail-url").value.trim() || null,
     category: document.getElementById("category").value.trim(),
     description: document.getElementById("description").value.trim(),
     published_at: document.getElementById("published-at").value
