@@ -24,8 +24,7 @@
   <section class="hero" id="hero">
     <div class="hero-video">
       <div class="thumb-frame" id="hero-thumb">
-        <img id="hero-thumb-img" src="" alt="Thumbnail do vídeo em destaque">
-        <a id="hero-play" class="play-btn" href="#" target="_blank" rel="noopener" aria-label="Assistir vídeo">▶</a>
+        <video id="hero-player" controls playsinline poster=""></video>
       </div>
     </div>
     <div class="hero-info">
@@ -76,6 +75,7 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="script.js"></script>
