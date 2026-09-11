@@ -32,12 +32,49 @@ async function loadList() {
     row.className = "admin-row";
     row.innerHTML = `
       <span>${video.title} — ${video.category}</span>
-      <button data-id="${video.id}">Remover</button>
+      <span class="row-actions">
+        <input type="file" accept="image/*" class="thumb-input" data-id="${video.id}">
+        <button class="thumb-btn" data-id="${video.id}">Trocar thumb</button>
+        <button data-id="${video.id}">Remover</button>
+      </span>
     `;
-    row.querySelector("button").addEventListener("click", () => deleteVideo(video.id));
+    row.querySelector(".thumb-btn").addEventListener("click", () => updateThumbnail(video.id, row));
+    row.querySelector("button:not(.thumb-btn)").addEventListener("click", () => deleteVideo(video.id));
     videoList.appendChild(row);
   });
 }
+
+async function updateThumbnail(id, row) {
+  const fileInput = row.querySelector(".thumb-input");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    showStatus("Escolhe uma imagem primeiro, antes de clicar em Trocar thumb.", false);
+    return;
+  }
+
+  const filePath = `${Date.now()}-${file.name}`;
+  const { error: uploadError } = await sb.storage.from("thumbnails").upload(filePath, file);
+
+  if (uploadError) {
+    showStatus("Não deu pra subir a imagem nova.", false);
+    return;
+  }
+
+  const { data: publicUrlData } = sb.storage.from("thumbnails").getPublicUrl(filePath);
+
+  const { error: updateError } = await sb
+    .from("videos")
+    .update({ thumbnail_url: publicUrlData.publicUrl })
+    .eq("id", id);
+
+  if (updateError) {
+    showStatus("Imagem subiu, mas não deu pra atualizar o vídeo.", false);
+    return;
+  }
+
+  showStatus("Thumb atualizada!", true);
+  fileInput.value = "";
 
 async function deleteVideo(id) {
   const { error } = await sb.from("videos").delete().eq("id", id);
@@ -103,4 +140,3 @@ form.addEventListener("submit", async (e) => {
 });
 
 loadList();
-
