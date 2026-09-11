@@ -1,0 +1,126 @@
+:root {
+  --bg: #10161C;
+  --bg-panel: #171F29;
+  --ink: #E7E3D8;
+  --ink-dim: #9BA3AC;
+  --accent: #D4A73D;
+  --green: #6EBF7F;
+  --red: #D96A6A;
+  --line: #29323D;
+
+  --font-display: 'Fraunces', serif;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+.status-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.status-header h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 28px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.last-update {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.loading, .error-msg {
+  color: var(--ink-dim);
+  grid-column: 1 / -1;
+}
+
+.error-msg { color: var(--red); }
+
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.card-label {
+  font-size: 13px;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.ok { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.dot.fail { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+.card-value {
+  font-family: var(--font-display);
+  font-size: 26px;
+  margin: 0;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: var(--ink-dim);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+.card.fail .card-value { color: var(--red); }
+.card.ok .card-value { color: var(--green); }
+
+@media (max-width: 560px) {
+  .status-wrap { padding: 32px 16px; }
+}
