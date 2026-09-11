@@ -75,6 +75,8 @@ async function updateThumbnail(id, row) {
 
   showStatus("Thumb atualizada!", true);
   fileInput.value = "";
+  loadList();
+}
 
 async function deleteVideo(id) {
   const { error } = await sb.from("videos").delete().eq("id", id);
