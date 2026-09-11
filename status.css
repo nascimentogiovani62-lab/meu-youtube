@@ -40,7 +40,7 @@ body {
 
 .status-header h1 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 28px;
   margin: 0;
   display: flex;
