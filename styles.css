@@ -4,6 +4,7 @@
   --ink: #E4E8EA;
   --ink-dim: #8B98A0;
   --accent: #4FB8C4;
+  --red: #C23B32;
   --line: #262D33;
 
   --font-display: 'IBM Plex Mono', monospace;
@@ -66,6 +67,12 @@ a { color: inherit; text-decoration: none; }
   margin-left: 8px;
   vertical-align: middle;
   letter-spacing: 0.02em;
+}
+
+.brand-star {
+  color: var(--red);
+  font-size: 13px;
+  margin-left: 4px;
 }
 
 .site-nav { display: flex; gap: 32px; }
