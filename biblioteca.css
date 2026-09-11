@@ -137,8 +137,6 @@
   color: var(--ink-dim);
 }
 
-.site-nav a.active { color: var(--accent); }
-
 @media (max-width: 900px) {
   .mural-intro { padding: 40px 24px 24px; }
   .mural, .estante { padding: 24px 24px 64px; }
