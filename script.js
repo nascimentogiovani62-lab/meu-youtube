@@ -2,6 +2,8 @@ const grid = document.getElementById("video-grid");
 const filtersWrap = document.getElementById("filters");
 const loadingMsg = document.getElementById("loading-msg");
 const heroPlayer = document.getElementById("hero-player");
+const qualityBar = document.getElementById("quality-bar");
+const qualitySelect = document.getElementById("quality-select");
 
 let allVideos = [];
 let heroHls = null;
@@ -11,18 +13,43 @@ function formatDate(dateStr) {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
 }
 
+function setupQualityMenu(hls) {
+  hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    if (hls.levels.length <= 1) {
+      qualityBar.hidden = true;
+      return;
+    }
+
+    qualitySelect.innerHTML = `<option value="-1">Automático</option>`;
+    hls.levels.forEach((level, index) => {
+      const opt = document.createElement("option");
+      opt.value = index;
+      opt.textContent = level.height + "p";
+      qualitySelect.appendChild(opt);
+    });
+    qualitySelect.value = "-1";
+    qualityBar.hidden = false;
+  });
+}
+
+qualitySelect.addEventListener("change", () => {
+  if (heroHls) heroHls.currentLevel = parseInt(qualitySelect.value, 10);
+});
+
 function loadIntoPlayer(video) {
   if (heroHls) {
     heroHls.destroy();
     heroHls = null;
   }
+  qualityBar.hidden = true;
 
   if (Hls.isSupported()) {
     heroHls = new Hls();
+    setupQualityMenu(heroHls);
     heroHls.loadSource(video.stream_url);
     heroHls.attachMedia(heroPlayer);
   } else if (heroPlayer.canPlayType("application/vnd.apple.mpegurl")) {
-    // Safari toca HLS nativamente
+    // Safari toca HLS nativamente e já tem seletor de qualidade embutido
     heroPlayer.src = video.stream_url;
   }
 
@@ -105,4 +132,3 @@ async function loadVideos() {
 }
 
 loadVideos();
-
