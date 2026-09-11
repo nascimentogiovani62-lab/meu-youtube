@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Saburi — Vídeos</title>
+<title>Biblioteca — Saburi/play</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="biblioteca.css">
 </head>
 <body>
 
 <header class="site-header">
-  <a href="#" class="brand">
+  <a href="index.html" class="brand">
     <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M 175 150 L 110 256 L 175 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M 337 150 L 402 256 L 337 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
@@ -21,66 +22,44 @@
     Saburi<span>/play</span>
   </a>
   <nav class="site-nav">
-    <a href="#catalogo">Catálogo</a>
-    <a href="biblioteca.html">Biblioteca</a>
-    <a href="#sobre">Sobre</a>
-    <a href="#contato">Contato</a>
+    <a href="index.html#catalogo">Catálogo</a>
+    <a href="biblioteca.html" class="active">Biblioteca</a>
+    <a href="index.html#contato">Contato</a>
   </nav>
 </header>
 
 <main>
 
-  <section class="hero" id="hero">
-    <div class="hero-video">
-      <div class="thumb-frame" id="hero-thumb">
-        <video id="hero-player" controls playsinline poster=""></video>
-      </div>
-      <div class="quality-bar" id="quality-bar" hidden>
-        <label for="quality-select">Qualidade</label>
-        <select id="quality-select"></select>
-      </div>
-    </div>
-    <div class="hero-info">
-      <p class="eyebrow-plain">Vídeo em destaque</p>
-      <h1 id="hero-title">Carregando…</h1>
-      <p class="hero-desc" id="hero-desc"></p>
-      <div class="hero-meta" id="hero-meta"></div>
+  <section class="mural-intro">
+    <p class="eyebrow-plain">Biblioteca</p>
+    <h1>Referências e leituras</h1>
+    <p class="mural-desc">Um mural com quem influenciou como eu penso sobre qualidade, sistemas e produto — e a estante do que já li e do que ainda quero ler.</p>
+  </section>
+
+  <section class="mural" id="mural">
+    <h2>Mural de referências</h2>
+    <div class="mural-grid" id="mural-grid">
+      <p class="loading-msg">Carregando…</p>
     </div>
   </section>
 
-  <section class="catalogo" id="catalogo">
+  <section class="estante" id="estante">
     <div class="section-head">
-      <h2>Catálogo</h2>
-      <div class="filters" id="filters">
+      <h2>Estante</h2>
+      <div class="filters" id="book-filters">
         <button class="filter active" data-filter="todos">Todos</button>
+        <button class="filter" data-filter="lido">Já li</button>
+        <button class="filter" data-filter="quero_ler">Quero ler</button>
       </div>
     </div>
-
-    <div class="video-grid" id="video-grid">
-      <p class="loading-msg" id="loading-msg">Carregando vídeos…</p>
-    </div>
-  </section>
-
-  <section class="sobre" id="sobre">
-    <div class="sobre-text">
-      <h2>Sobre o canal</h2>
-      <p>Desenvolvedor construindo produtos próprios — SSGF, SSAP e o que vier depois — e documentando o processo real: código, decisões de produto e o dia a dia de tocar um negócio de software sozinho.</p>
-    </div>
-    <div class="sobre-stats">
-      <div class="stat">
-        <span class="stat-num">2</span>
-        <span class="stat-label">produtos em produção</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">1</span>
-        <span class="stat-label">time completo</span>
-      </div>
+    <div class="book-grid" id="book-grid">
+      <p class="loading-msg">Carregando…</p>
     </div>
   </section>
 
 </main>
 
-<footer class="site-footer" id="contato">
+<footer class="site-footer">
   <div class="footer-brand">
     <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path d="M 175 150 L 110 256 L 175 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
@@ -91,13 +70,12 @@
   </div>
   <div class="footer-links">
     <a href="https://ssgf.com.br" target="_blank" rel="noopener">ssgf.com.br</a>
-    <a href="#">contato</a>
+    <a href="index.html#contato">contato</a>
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
-<script src="script.js"></script>
+<script src="biblioteca.js"></script>
 </body>
 </html>

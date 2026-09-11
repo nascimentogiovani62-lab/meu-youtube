@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Biblioteca — Saburi/play</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="admin-wrap">
+  <h1>
+    <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M 175 150 L 110 256 L 175 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 337 150 L 402 256 L 337 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 222 188 L 222 324 L 328 256 Z" fill="currentColor"/>
+    </svg>
+    Adicionar referência
+  </h1>
+  <p class="hint">Nome, papel/área (opcional) e uma foto.</p>
+
+  <form id="figure-form">
+    <div class="field">
+      <label for="fig-name">Nome</label>
+      <input type="text" id="fig-name" required placeholder="Ex: W. Edwards Deming">
+    </div>
+    <div class="field">
+      <label for="fig-role">Papel / área (opcional)</label>
+      <input type="text" id="fig-role" placeholder="Ex: Gestão da qualidade">
+    </div>
+    <div class="field">
+      <label for="fig-photo">Foto</label>
+      <input type="file" id="fig-photo" accept="image/*">
+    </div>
+    <button type="submit" class="submit-btn" id="fig-submit">Salvar referência</button>
+    <p class="status-msg" id="fig-status"></p>
+  </form>
+
+  <div class="admin-list">
+    <h2>Referências cadastradas</h2>
+    <div id="figure-list">Carregando…</div>
+  </div>
+
+  <hr style="border-color: var(--line); margin: 56px 0;">
+
+  <h1>Adicionar livro</h1>
+  <p class="hint">Título, autor (opcional), capa e status.</p>
+
+  <form id="book-form">
+    <div class="field">
+      <label for="book-title">Título</label>
+      <input type="text" id="book-title" required placeholder="Ex: Out of the Crisis">
+    </div>
+    <div class="field">
+      <label for="book-author">Autor (opcional)</label>
+      <input type="text" id="book-author" placeholder="Ex: W. Edwards Deming">
+    </div>
+    <div class="field">
+      <label for="book-cover">Capa</label>
+      <input type="file" id="book-cover" accept="image/*">
+    </div>
+    <div class="field">
+      <label for="book-status">Status</label>
+      <select id="book-status">
+        <option value="quero_ler">Quero ler</option>
+        <option value="lido">Já li</option>
+      </select>
+    </div>
+    <button type="submit" class="submit-btn" id="book-submit">Salvar livro</button>
+    <p class="status-msg" id="book-status-msg"></p>
+  </form>
+
+  <div class="admin-list">
+    <h2>Livros cadastrados</h2>
+    <div id="book-list">Carregando…</div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="admin-biblioteca.js"></script>
+</body>
+</html>
