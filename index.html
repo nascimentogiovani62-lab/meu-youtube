@@ -35,8 +35,16 @@
         <video id="hero-player" controls playsinline poster=""></video>
       </div>
       <div class="quality-bar" id="quality-bar" hidden>
-        <label for="quality-select">Qualidade</label>
-        <select id="quality-select"></select>
+        <span class="quality-label">Qualidade</span>
+        <div class="quality-dropdown" id="quality-dropdown">
+          <button class="quality-trigger" id="quality-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span id="quality-trigger-label">Automático</span>
+            <svg class="quality-chevron" width="10" height="6" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <ul class="quality-menu" id="quality-menu" role="listbox" hidden></ul>
+        </div>
       </div>
     </div>
     <div class="hero-info">
