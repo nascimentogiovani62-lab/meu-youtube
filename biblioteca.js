@@ -1,8 +1,13 @@
 const muralGrid = document.getElementById("mural-grid");
 const bookGrid = document.getElementById("book-grid");
 const bookFilters = document.getElementById("book-filters");
+const authorFilterChip = document.getElementById("author-filter-chip");
+const authorFilterName = document.getElementById("author-filter-name");
+const clearAuthorFilter = document.getElementById("clear-author-filter");
 
 let allBooks = [];
+let currentStatusFilter = "todos";
+let currentAuthorFilter = null;
 
 async function loadMural() {
   const { data, error } = await sb.from("figures").select("*").order("created_at", { ascending: true });
@@ -24,7 +29,10 @@ async function loadMural() {
       ${fig.role ? `<div class="figure-role">${fig.role}</div>` : ""}
     `;
     card.style.cursor = "pointer";
-    card.addEventListener("click", () => openFigureModal(fig));
+    card.addEventListener("click", () => {
+      openFigureModal(fig);
+      filterBooksByAuthor(fig.name);
+    });
     muralGrid.appendChild(card);
   });
 }
@@ -81,8 +89,13 @@ modalSave.addEventListener("click", async () => {
   modalStatus.className = "modal-status ok";
 });
 
-function renderBooks(filter) {
-  const list = filter === "todos" ? allBooks : allBooks.filter(b => b.status === filter);
+function renderBooks() {
+  let list = currentStatusFilter === "todos" ? allBooks : allBooks.filter(b => b.status === currentStatusFilter);
+
+  if (currentAuthorFilter) {
+    list = list.filter(b => (b.author || "").trim().toLowerCase() === currentAuthorFilter.trim().toLowerCase());
+  }
+
   bookGrid.innerHTML = "";
 
   if (list.length === 0) {
@@ -105,6 +118,20 @@ function renderBooks(filter) {
   });
 }
 
+function filterBooksByAuthor(name) {
+  currentAuthorFilter = name;
+  authorFilterName.textContent = name;
+  authorFilterChip.hidden = false;
+  renderBooks();
+  document.getElementById("estante").scrollIntoView({ behavior: "smooth" });
+}
+
+clearAuthorFilter.addEventListener("click", () => {
+  currentAuthorFilter = null;
+  authorFilterChip.hidden = true;
+  renderBooks();
+});
+
 async function loadBooks() {
   const { data, error } = await sb.from("books").select("*").order("created_at", { ascending: false });
 
@@ -114,14 +141,15 @@ async function loadBooks() {
   }
 
   allBooks = data;
-  renderBooks("todos");
+  renderBooks();
 }
 
 bookFilters.querySelectorAll(".filter").forEach(btn => {
   btn.addEventListener("click", () => {
     bookFilters.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    renderBooks(btn.dataset.filter);
+    currentStatusFilter = btn.dataset.filter;
+    renderBooks();
   });
 });
 
