@@ -82,6 +82,47 @@ function renderFilters(categories) {
   });
 }
 
+function startPreview(card, video) {
+  const frame = card.querySelector(".thumb-frame");
+  const img = frame.querySelector("img");
+  const previewVideo = document.createElement("video");
+  previewVideo.className = "hover-preview";
+  previewVideo.muted = true;
+  previewVideo.loop = true;
+  previewVideo.playsInline = true;
+  frame.appendChild(previewVideo);
+
+  if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(video.stream_url);
+    hls.attachMedia(previewVideo);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      hls.currentLevel = 0;
+      previewVideo.play().catch(() => {});
+    });
+    card._previewHls = hls;
+  } else {
+    previewVideo.src = video.stream_url;
+    previewVideo.play().catch(() => {});
+  }
+
+  if (img) img.style.visibility = "hidden";
+}
+
+function stopPreview(card) {
+  const frame = card.querySelector(".thumb-frame");
+  const previewVideo = frame.querySelector(".hover-preview");
+
+  if (card._previewHls) {
+    card._previewHls.destroy();
+    card._previewHls = null;
+  }
+  if (previewVideo) previewVideo.remove();
+
+  const img = frame.querySelector("img");
+  if (img) img.style.visibility = "visible";
+}
+
 function renderGrid(filter) {
   const list = filter === "todos" ? allVideos : allVideos.filter(v => v.category === filter);
   grid.innerHTML = "";
@@ -101,6 +142,16 @@ function renderGrid(filter) {
       <h3>${video.title}</h3>
       <div class="card-meta">${formatDate(video.published_at)} · ${video.category}</div>
     `;
+
+    let hoverTimer = null;
+    card.addEventListener("mouseenter", () => {
+      hoverTimer = setTimeout(() => startPreview(card, video), 400);
+    });
+    card.addEventListener("mouseleave", () => {
+      clearTimeout(hoverTimer);
+      stopPreview(card);
+    });
+
     card.addEventListener("click", () => loadIntoPlayer(video));
     grid.appendChild(card);
   });

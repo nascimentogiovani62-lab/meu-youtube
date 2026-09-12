@@ -75,6 +75,24 @@ a { color: inherit; text-decoration: none; }
   margin-left: 4px;
 }
 
+.status-link {
+  display: inline-flex;
+  margin-left: 10px;
+  line-height: 0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+  display: inline-block;
+  transition: background 0.3s ease;
+}
+
+.status-dot.ok { background: #6EBF7F; box-shadow: 0 0 6px #6EBF7F; }
+.status-dot.fail { background: #D96A6A; box-shadow: 0 0 6px #D96A6A; }
+
 .site-nav { display: flex; gap: 24px; }
 
 .tab-link {
@@ -283,6 +301,14 @@ a { color: inherit; text-decoration: none; }
 .video-card .thumb-frame img { transition: filter 0.2s ease; }
 
 .video-card:hover .thumb-frame img { filter: saturate(1) brightness(1); }
+
+.hover-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .video-card h3 {
   font-family: var(--font-body);
