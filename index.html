@@ -29,8 +29,8 @@
 
 <main>
 
-  <section class="hero" id="hero">
-    <div class="hero-video">
+  <section class="watch" id="hero">
+    <div class="watch-main">
       <div class="thumb-frame" id="hero-thumb">
         <video id="hero-player" controls playsinline poster=""></video>
       </div>
@@ -46,13 +46,26 @@
           <ul class="quality-menu" id="quality-menu" role="listbox" hidden></ul>
         </div>
       </div>
-    </div>
-    <div class="hero-info">
-      <p class="eyebrow-plain">Vídeo em destaque</p>
+
       <h1 id="hero-title">Carregando…</h1>
-      <p class="hero-desc" id="hero-desc"></p>
       <div class="hero-meta" id="hero-meta"></div>
+      <p class="hero-desc" id="hero-desc"></p>
+
+      <div class="comments-section">
+        <h3 id="comments-count">Comentários</h3>
+        <form id="comment-form" class="comment-form">
+          <input type="text" id="comment-name" placeholder="Seu nome" required>
+          <textarea id="comment-body" rows="2" placeholder="Escreva um comentário..." required></textarea>
+          <button type="submit" class="submit-btn">Comentar</button>
+        </form>
+        <div id="comments-list"></div>
+      </div>
     </div>
+
+    <aside class="watch-sidebar">
+      <p class="sidebar-label">Assista também</p>
+      <div id="sidebar-list"></div>
+    </aside>
   </section>
 
   <section class="catalogo" id="catalogo">

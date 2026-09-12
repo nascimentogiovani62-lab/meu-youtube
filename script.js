@@ -10,10 +10,25 @@ const qualityMenu = document.getElementById("quality-menu");
 
 let allVideos = [];
 let heroHls = null;
+let currentVideoId = null;
 
 function formatDate(dateStr) {
   const d = new Date(dateStr);
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
+}
+
+function formatViews(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(".0", "") + "mil";
+  return String(n);
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "hoje";
+  if (days === 1) return "há 1 dia";
+  if (days < 30) return `há ${days} dias`;
+  return formatDate(dateStr);
 }
 
 function closeQualityMenu() {
@@ -80,6 +95,7 @@ function loadIntoPlayer(video) {
   }
   qualityBar.hidden = true;
   closeQualityMenu();
+  currentVideoId = video.id;
 
   if (Hls.isSupported()) {
     heroHls = new Hls();
@@ -96,10 +112,90 @@ function loadIntoPlayer(video) {
   document.getElementById("hero-title").textContent = video.title;
   document.getElementById("hero-desc").textContent = video.description || "";
   document.getElementById("hero-meta").innerHTML =
-    `<span>Publicado em ${formatDate(video.published_at)}</span><span class="dot-sep">•</span><span>${video.category}</span>`;
+    `<span>${formatViews(video.views || 0)} visualizações</span><span class="dot-sep">•</span><span>Publicado em ${formatDate(video.published_at)}</span><span class="dot-sep">•</span><span>${video.category}</span>`;
 
   document.getElementById("hero").scrollIntoView({ behavior: "smooth" });
+
+  registerView(video);
+  renderSidebar(video.id);
+  loadComments(video.id);
 }
+
+async function registerView(video) {
+  const newViews = (video.views || 0) + 1;
+  video.views = newViews;
+  await sb.from("videos").update({ views: newViews }).eq("id", video.id);
+}
+
+function renderSidebar(currentId) {
+  const sidebarList = document.getElementById("sidebar-list");
+  const others = allVideos.filter(v => v.id !== currentId);
+  sidebarList.innerHTML = "";
+
+  others.forEach(video => {
+    const item = document.createElement("div");
+    item.className = "sidebar-item";
+    item.innerHTML = `
+      <div class="sidebar-thumb">
+        ${video.thumbnail_url ? `<img src="${video.thumbnail_url}" alt="Thumbnail: ${video.title}">` : ""}
+      </div>
+      <div class="sidebar-info">
+        <h4>${video.title}</h4>
+        <div class="card-meta">${formatViews(video.views || 0)} views · ${video.category}</div>
+      </div>
+    `;
+    item.addEventListener("click", () => loadIntoPlayer(video));
+    sidebarList.appendChild(item);
+  });
+}
+
+async function loadComments(videoId) {
+  const commentsList = document.getElementById("comments-list");
+  const commentsCount = document.getElementById("comments-count");
+  commentsList.innerHTML = "";
+
+  const { data, error } = await sb
+    .from("comments")
+    .select("*")
+    .eq("video_id", videoId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    commentsCount.textContent = "Comentários";
+    return;
+  }
+
+  commentsCount.textContent = `${data.length} comentário${data.length === 1 ? "" : "s"}`;
+
+  data.forEach(comment => {
+    const item = document.createElement("div");
+    item.className = "comment-item";
+    item.innerHTML = `
+      <div class="comment-author">${comment.author_name}<span class="comment-date">${timeAgo(comment.created_at)}</span></div>
+      <div class="comment-body">${comment.body}</div>
+    `;
+    commentsList.appendChild(item);
+  });
+}
+
+document.getElementById("comment-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentVideoId) return;
+
+  const nameInput = document.getElementById("comment-name");
+  const bodyInput = document.getElementById("comment-body");
+
+  const { error } = await sb.from("comments").insert([{
+    video_id: currentVideoId,
+    author_name: nameInput.value.trim(),
+    body: bodyInput.value.trim()
+  }]);
+
+  if (!error) {
+    bodyInput.value = "";
+    loadComments(currentVideoId);
+  }
+});
 
 function renderFilters(categories) {
   filtersWrap.innerHTML = `<button class="filter active" data-filter="todos">Todos</button>`;
@@ -178,7 +274,7 @@ function renderGrid(filter) {
         ${video.thumbnail_url ? `<img src="${video.thumbnail_url}" alt="Thumbnail: ${video.title}">` : `<div class="no-thumb">▶</div>`}
       </div>
       <h3>${video.title}</h3>
-      <div class="card-meta">${formatDate(video.published_at)} · ${video.category}</div>
+      <div class="card-meta">${formatViews(video.views || 0)} views · ${formatDate(video.published_at)} · ${video.category}</div>
     `;
 
     let hoverTimer = null;
