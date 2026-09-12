@@ -20,6 +20,7 @@
       <path d="M 222 188 L 222 324 L 328 256 Z" fill="currentColor"/>
     </svg>
     saburi<span class="brand-badge">v.play</span><span class="brand-star" aria-hidden="true">★</span>
+    <a href="https://videos.ssgf.com.br/status.html" class="status-link" target="_blank" rel="noopener" aria-label="Status do servidor"><span class="status-dot" id="status-dot"></span></a>
   </a>
   <nav class="site-nav">
     <a href="index.html" class="tab-link">Vídeos</a>
@@ -58,6 +59,21 @@
 
 </main>
 
+<div class="modal-overlay" id="figure-modal" hidden>
+  <div class="modal-card">
+    <button class="modal-close" id="modal-close" aria-label="Fechar">✕</button>
+    <div class="modal-photo-frame" id="modal-photo-frame"></div>
+    <p class="modal-name" id="modal-name"></p>
+    <p class="modal-role" id="modal-role"></p>
+    <label for="modal-notes" class="modal-notes-label">Suas anotações</label>
+    <textarea id="modal-notes" rows="8" placeholder="O que você acha das ideias dessa pessoa, o que te influenciou, o que discorda..."></textarea>
+    <div class="modal-actions">
+      <span class="modal-status" id="modal-status"></span>
+      <button class="submit-btn" id="modal-save">Salvar anotação</button>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="footer-brand">
     <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -75,6 +91,7 @@
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
+<script src="header-status.js"></script>
 <script src="biblioteca.js"></script>
 </body>
 </html>

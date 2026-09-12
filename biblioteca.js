@@ -23,9 +23,63 @@ async function loadMural() {
       <p class="figure-name">${fig.name}</p>
       ${fig.role ? `<div class="figure-role">${fig.role}</div>` : ""}
     `;
+    card.style.cursor = "pointer";
+    card.addEventListener("click", () => openFigureModal(fig));
     muralGrid.appendChild(card);
   });
 }
+
+const figureModal = document.getElementById("figure-modal");
+const modalClose = document.getElementById("modal-close");
+const modalPhotoFrame = document.getElementById("modal-photo-frame");
+const modalName = document.getElementById("modal-name");
+const modalRole = document.getElementById("modal-role");
+const modalNotes = document.getElementById("modal-notes");
+const modalSave = document.getElementById("modal-save");
+const modalStatus = document.getElementById("modal-status");
+
+let currentFigureId = null;
+
+function openFigureModal(fig) {
+  currentFigureId = fig.id;
+  modalPhotoFrame.innerHTML = fig.photo_url ? `<img src="${fig.photo_url}" alt="${fig.name}">` : "";
+  modalName.textContent = fig.name;
+  modalRole.textContent = fig.role || "";
+  modalNotes.value = fig.notes || "";
+  modalStatus.textContent = "";
+  figureModal.hidden = false;
+}
+
+function closeFigureModal() {
+  figureModal.hidden = true;
+  currentFigureId = null;
+}
+
+modalClose.addEventListener("click", closeFigureModal);
+figureModal.addEventListener("click", (e) => {
+  if (e.target === figureModal) closeFigureModal();
+});
+
+modalSave.addEventListener("click", async () => {
+  if (!currentFigureId) return;
+  modalSave.disabled = true;
+
+  const { error } = await sb
+    .from("figures")
+    .update({ notes: modalNotes.value })
+    .eq("id", currentFigureId);
+
+  modalSave.disabled = false;
+
+  if (error) {
+    modalStatus.textContent = "Não deu pra salvar.";
+    modalStatus.className = "modal-status";
+    return;
+  }
+
+  modalStatus.textContent = "Salvo!";
+  modalStatus.className = "modal-status ok";
+});
 
 function renderBooks(filter) {
   const list = filter === "todos" ? allBooks : allBooks.filter(b => b.status === filter);
