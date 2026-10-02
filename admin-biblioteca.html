@@ -46,7 +46,7 @@
 
   <hr style="border-color: var(--line); margin: 56px 0;">
 
-  <h1>Adicionar livro</h1>
+  <h1 id="book-form-title">Adicionar livro</h1>
   <p class="hint">Título, autor (opcional), capa e status.</p>
 
   <form id="book-form">
@@ -59,7 +59,7 @@
       <input type="text" id="book-author" placeholder="Ex: W. Edwards Deming">
     </div>
     <div class="field">
-      <label for="book-cover">Capa</label>
+      <label for="book-cover">Capa (deixe em branco pra manter a atual, se estiver editando)</label>
       <input type="file" id="book-cover" accept="image/*">
     </div>
     <div class="field">
@@ -70,6 +70,7 @@
       </select>
     </div>
     <button type="submit" class="submit-btn" id="book-submit">Salvar livro</button>
+    <button type="button" class="submit-btn" id="book-cancel-edit" style="background: none; border: 1px solid var(--line); color: var(--ink-dim); margin-left: 8px;" hidden>Cancelar edição</button>
     <p class="status-msg" id="book-status-msg"></p>
   </form>
 
