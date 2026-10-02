@@ -78,6 +78,21 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="book-modal" hidden>
+  <div class="modal-card">
+    <button class="modal-close" id="book-modal-close" aria-label="Fechar">✕</button>
+    <div class="modal-photo-frame book-modal-cover" id="book-modal-cover"></div>
+    <p class="modal-name" id="book-modal-title"></p>
+    <p class="modal-role" id="book-modal-author"></p>
+    <label for="book-modal-resenha" class="modal-notes-label">Sua resenha</label>
+    <textarea id="book-modal-resenha" rows="8" placeholder="O que você achou do livro, principais ideias, trechos marcantes..."></textarea>
+    <div class="modal-actions">
+      <span class="modal-status" id="book-modal-status"></span>
+      <button class="submit-btn" id="book-modal-save">Salvar resenha</button>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="footer-brand">
     <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
