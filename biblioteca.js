@@ -9,6 +9,8 @@ let allBooks = [];
 let currentStatusFilter = "todos";
 let currentAuthorFilter = null;
 
+// ---------- mural ----------
+
 async function loadMural() {
   const { data, error } = await sb.from("figures").select("*").order("created_at", { ascending: true });
 
@@ -89,6 +91,8 @@ modalSave.addEventListener("click", async () => {
   modalStatus.className = "modal-status ok";
 });
 
+// ---------- estante ----------
+
 function renderBooks() {
   let list = currentStatusFilter === "todos" ? allBooks : allBooks.filter(b => b.status === currentStatusFilter);
 
@@ -114,6 +118,7 @@ function renderBooks() {
       <p class="book-title">${book.title}</p>
       ${book.author ? `<div class="book-author">${book.author}</div>` : ""}
     `;
+    card.addEventListener("click", () => openBookModal(book));
     bookGrid.appendChild(card);
   });
 }
@@ -151,6 +156,63 @@ bookFilters.querySelectorAll(".filter").forEach(btn => {
     currentStatusFilter = btn.dataset.filter;
     renderBooks();
   });
+});
+
+// ---------- modal de resenha ----------
+
+const bookModal = document.getElementById("book-modal");
+const bookModalClose = document.getElementById("book-modal-close");
+const bookModalCover = document.getElementById("book-modal-cover");
+const bookModalTitle = document.getElementById("book-modal-title");
+const bookModalAuthor = document.getElementById("book-modal-author");
+const bookModalResenha = document.getElementById("book-modal-resenha");
+const bookModalSave = document.getElementById("book-modal-save");
+const bookModalStatus = document.getElementById("book-modal-status");
+
+let currentBookId = null;
+
+function openBookModal(book) {
+  currentBookId = book.id;
+  bookModalCover.innerHTML = book.cover_url ? `<img src="${book.cover_url}" alt="Capa de ${book.title}">` : "";
+  bookModalTitle.textContent = book.title;
+  bookModalAuthor.textContent = book.author || "";
+  bookModalResenha.value = book.resenha || "";
+  bookModalStatus.textContent = "";
+  bookModal.hidden = false;
+}
+
+function closeBookModal() {
+  bookModal.hidden = true;
+  currentBookId = null;
+}
+
+bookModalClose.addEventListener("click", closeBookModal);
+bookModal.addEventListener("click", (e) => {
+  if (e.target === bookModal) closeBookModal();
+});
+
+bookModalSave.addEventListener("click", async () => {
+  if (!currentBookId) return;
+  bookModalSave.disabled = true;
+
+  const { error } = await sb
+    .from("books")
+    .update({ resenha: bookModalResenha.value })
+    .eq("id", currentBookId);
+
+  bookModalSave.disabled = false;
+
+  if (error) {
+    bookModalStatus.textContent = "Não deu pra salvar.";
+    bookModalStatus.className = "modal-status";
+    return;
+  }
+
+  bookModalStatus.textContent = "Salvo!";
+  bookModalStatus.className = "modal-status ok";
+
+  const cached = allBooks.find(b => b.id === currentBookId);
+  if (cached) cached.resenha = bookModalResenha.value;
 });
 
 loadMural();
