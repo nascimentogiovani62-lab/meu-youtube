@@ -70,6 +70,35 @@ const bookForm = document.getElementById("book-form");
 const bookSubmit = document.getElementById("book-submit");
 const bookStatusMsg = document.getElementById("book-status-msg");
 const bookList = document.getElementById("book-list");
+const bookFormTitle = document.getElementById("book-form-title");
+const bookCancelEdit = document.getElementById("book-cancel-edit");
+
+let editingBookId = null;
+
+function enterEditMode(book) {
+  editingBookId = book.id;
+  document.getElementById("book-title").value = book.title;
+  document.getElementById("book-author").value = book.author || "";
+  document.getElementById("book-status").value = book.status;
+  document.getElementById("book-cover").value = "";
+
+  bookFormTitle.textContent = "Editar livro";
+  bookSubmit.textContent = "Salvar alterações";
+  bookCancelEdit.hidden = false;
+  bookStatusMsg.textContent = "";
+  bookForm.scrollIntoView({ behavior: "smooth" });
+}
+
+function exitEditMode() {
+  editingBookId = null;
+  bookForm.reset();
+  bookFormTitle.textContent = "Adicionar livro";
+  bookSubmit.textContent = "Salvar livro";
+  bookCancelEdit.hidden = true;
+  bookStatusMsg.textContent = "";
+}
+
+bookCancelEdit.addEventListener("click", exitEditMode);
 
 async function loadBooksAdmin() {
   const { data, error } = await sb.from("books").select("*").order("created_at", { ascending: false });
@@ -82,9 +111,17 @@ async function loadBooksAdmin() {
     const row = document.createElement("div");
     row.className = "admin-row";
     const statusLabel = book.status === "lido" ? "Já li" : "Quero ler";
-    row.innerHTML = `<span>${book.title}${book.author ? " — " + book.author : ""} (${statusLabel})</span><button data-id="${book.id}">Remover</button>`;
-    row.querySelector("button").addEventListener("click", async () => {
+    row.innerHTML = `
+      <span>${book.title}${book.author ? " — " + book.author : ""} (${statusLabel})</span>
+      <span class="row-actions">
+        <button class="thumb-btn" data-id="${book.id}">Editar</button>
+        <button data-id="${book.id}">Remover</button>
+      </span>
+    `;
+    row.querySelector(".thumb-btn").addEventListener("click", () => enterEditMode(book));
+    row.querySelector("button:not(.thumb-btn)").addEventListener("click", async () => {
       await sb.from("books").delete().eq("id", book.id);
+      if (editingBookId === book.id) exitEditMode();
       loadBooksAdmin();
     });
     bookList.appendChild(row);
@@ -95,7 +132,7 @@ bookForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   bookSubmit.disabled = true;
 
-  let coverUrl = null;
+  let coverUrl = undefined; // undefined = não mexe na capa atual, se estiver editando
   const file = document.getElementById("book-cover").files[0];
 
   if (file) {
@@ -111,12 +148,21 @@ bookForm.addEventListener("submit", async (e) => {
     coverUrl = urlData.publicUrl;
   }
 
-  const { error } = await sb.from("books").insert([{
+  const payload = {
     title: document.getElementById("book-title").value.trim(),
     author: document.getElementById("book-author").value.trim() || null,
-    cover_url: coverUrl,
     status: document.getElementById("book-status").value
-  }]);
+  };
+  if (coverUrl !== undefined) payload.cover_url = coverUrl;
+
+  let error;
+
+  if (editingBookId) {
+    ({ error } = await sb.from("books").update(payload).eq("id", editingBookId));
+  } else {
+    if (coverUrl === undefined) payload.cover_url = null;
+    ({ error } = await sb.from("books").insert([payload]));
+  }
 
   bookSubmit.disabled = false;
 
@@ -126,9 +172,16 @@ bookForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  bookStatusMsg.textContent = "Livro salvo!";
+  const wasEditing = !!editingBookId;
+  bookStatusMsg.textContent = wasEditing ? "Alterações salvas!" : "Livro salvo!";
   bookStatusMsg.className = "status-msg ok";
-  bookForm.reset();
+
+  if (wasEditing) {
+    exitEditMode();
+  } else {
+    bookForm.reset();
+  }
+
   loadBooksAdmin();
 });
 
