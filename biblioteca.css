@@ -1,35 +1,55 @@
+/* =========================================================
+   biblioteca.css
+   Depende de styles.css (tokens: --gutter, --container, --radius,
+   --line-strong, --accent-soft, --ok, --err). Todos os seletores
+   da versão anterior foram mantidos.
+   ========================================================= */
+
+/* ---------- introdução ---------- */
+
 .mural-intro {
-  max-width: 1280px;
+  max-width: var(--container);
   margin: 0 auto;
-  padding: 64px 48px 40px;
+  padding: 56px var(--gutter) 32px;
+}
+
+.eyebrow-plain {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin: 0;
 }
 
 .mural-intro h1 {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 32px;
+  line-height: 1.2;
   margin: 12px 0 16px;
   max-width: 20ch;
+  text-wrap: balance;
 }
 
 .mural-desc {
   color: var(--ink-dim);
   font-size: 16px;
+  line-height: 1.6;
   max-width: 56ch;
+  margin: 0;
 }
 
-/* ---------- mural ---------- */
+/* ---------- mural de referências ---------- */
 
 .mural {
-  max-width: 1280px;
+  max-width: var(--container);
   margin: 0 auto;
-  padding: 24px 48px 72px;
+  padding: 24px var(--gutter) 72px;
 }
 
 .mural h2 {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 22px;
+  font-size: 24px;
   margin: 0 0 32px;
 }
 
@@ -39,7 +59,10 @@
   gap: 32px 24px;
 }
 
-.figure-card { text-align: center; }
+.figure-card {
+  text-align: center;
+  cursor: pointer;
+}
 
 .figure-photo-frame {
   width: 120px;
@@ -60,7 +83,10 @@
   object-fit: cover;
   display: block;
   filter: grayscale(0.4);
+  transition: filter 0.2s ease;
 }
+
+.figure-card:hover .figure-photo-frame img { filter: grayscale(0); }
 
 .figure-name {
   font-family: var(--font-display);
@@ -68,6 +94,8 @@
   font-weight: 600;
   margin: 0 0 2px;
 }
+
+.figure-card:hover .figure-name { color: var(--accent); }
 
 .figure-role {
   font-size: 12px;
@@ -78,9 +106,9 @@
 /* ---------- estante ---------- */
 
 .estante {
-  max-width: 1280px;
+  max-width: var(--container);
   margin: 0 auto;
-  padding: 24px 48px 96px;
+  padding: 40px var(--gutter) 96px;
   border-top: 1px solid var(--line);
 }
 
@@ -88,14 +116,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 28px 20px;
-  margin-top: 40px;
 }
 
 .book-card { cursor: pointer; }
 
 .book-cover-frame {
   aspect-ratio: 2/3;
-  border-radius: 4px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-panel);
   border: 1px solid var(--line);
@@ -118,10 +145,10 @@
   top: 8px;
   left: 8px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  background: rgba(20, 24, 28, 0.85);
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: rgba(20, 24, 28, 0.9);
   color: var(--accent);
 }
 
@@ -131,22 +158,38 @@
   font-size: 13px;
   margin: 0 0 2px;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+.book-card:hover .book-title { color: var(--accent); }
+
 .book-author {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-dim);
 }
 
+/* ---------- filtro por autor ---------- */
+
 .author-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--ink-dim);
-  margin-top: -16px;
-  margin-bottom: 24px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  margin: -12px 0 24px;
 }
 
-.author-filter-chip strong { color: var(--accent); }
+.author-filter-chip[hidden] { display: none; }
+
+.author-filter-chip strong { color: var(--accent); font-weight: 600; }
 
 .author-filter-chip button {
   background: none;
@@ -155,18 +198,20 @@
   font-family: var(--font-mono);
   font-size: 12px;
   cursor: pointer;
-  margin-left: 10px;
+  padding: 0;
   text-decoration: underline;
 }
 
 .author-filter-chip button:hover { color: var(--ink); }
 
-/* ---------- modal de anotações / resenha ---------- */
+/* ---------- modais de anotações e resenha ---------- */
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 13, 15, 0.8);
+  background: rgba(10, 13, 15, 0.82);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,28 +223,37 @@
 
 .modal-card {
   background: var(--bg-panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
   padding: 32px;
   max-width: 480px;
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   position: relative;
+  box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.7);
 }
 
 .modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
+  border-radius: var(--radius);
   color: var(--ink-dim);
   font-size: 16px;
   cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
-.modal-close:hover { color: var(--ink); }
+.modal-close:hover { color: var(--ink); background: var(--line); }
 
 .modal-photo-frame {
   width: 80px;
@@ -216,7 +270,7 @@
 .book-modal-cover {
   width: 90px;
   height: 135px;
-  border-radius: 4px;
+  border-radius: var(--radius);
 }
 
 .modal-name {
@@ -237,7 +291,7 @@
 
 .modal-notes-label {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-dim);
   margin-bottom: 8px;
 }
@@ -250,19 +304,29 @@
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 14px;
+  line-height: 1.55;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: var(--radius);
   resize: vertical;
   box-sizing: border-box;
+  transition: border-color 0.2s ease;
 }
 
+#modal-notes::placeholder,
+#book-modal-resenha::placeholder { color: var(--ink-dim); }
+
 #modal-notes:focus,
-#book-modal-resenha:focus { outline: 2px solid var(--accent); }
+#book-modal-resenha:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
 
 .modal-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-top: 14px;
 }
 
@@ -271,9 +335,26 @@
   color: var(--ink-dim);
 }
 
-.modal-status.ok { color: #6EBF7F; }
+.modal-status.ok { color: var(--ok); }
+
+.modal-status.error { color: var(--err); }
+
+/* ---------- responsivo (único bloco por breakpoint) ---------- */
 
 @media (max-width: 900px) {
-  .mural-intro { padding: 40px 24px 24px; }
-  .mural, .estante { padding: 24px 24px 64px; }
+  .mural-intro { padding: 36px var(--gutter) 24px; }
+  .mural { padding: 24px var(--gutter) 56px; }
+  .estante { padding: 32px var(--gutter) 64px; }
+}
+
+@media (max-width: 560px) {
+  .mural-intro h1 { font-size: 26px; }
+
+  .mural-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 24px 16px; }
+  .figure-photo-frame { width: 96px; height: 96px; }
+
+  .book-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 24px 14px; }
+
+  .modal-overlay { padding: 12px; }
+  .modal-card { padding: 24px 20px; }
 }
