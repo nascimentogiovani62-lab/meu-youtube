@@ -3,33 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Vídeos sobre desenvolvimento de produtos próprios: código, decisões de produto e o dia a dia de um negócio de software.">
+<meta name="theme-color" content="#14181C">
 <title>Saburi — Vídeos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+
 <header class="site-header">
-  <a href="#" class="brand">
-    <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M 175 150 L 110 256 L 175 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M 337 150 L 402 256 L 337 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M 222 188 L 222 324 L 328 256 Z" fill="currentColor"/>
-    </svg>
-    saburi<span class="brand-badge">v.play</span><span class="brand-star" aria-hidden="true">★</span>
+  <div class="brand-group">
+    <a href="#" class="brand" aria-label="saburi v.play, início">
+      <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M 175 150 L 110 256 L 175 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 337 150 L 402 256 L 337 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 222 188 L 222 324 L 328 256 Z" fill="currentColor"/>
+      </svg>
+      saburi<span class="brand-badge">v.play</span><span class="brand-star" aria-hidden="true">★</span>
+    </a>
     <a href="https://videos.ssgf.com.br/status.html" class="status-link" target="_blank" rel="noopener" aria-label="Status do servidor"><span class="status-dot" id="status-dot"></span></a>
-  </a>
-  <nav class="site-nav">
-    <a href="index.html" class="tab-link active">Vídeos</a>
+  </div>
+  <nav class="site-nav" aria-label="Principal">
+    <a href="index.html" class="tab-link active" aria-current="page">Vídeos</a>
     <a href="biblioteca.html" class="tab-link">Biblioteca</a>
   </nav>
 </header>
 
-<main>
+<main id="main">
 
-  <section class="watch" id="hero">
+  <section class="watch" id="hero" aria-label="Vídeo em destaque">
     <div class="watch-main">
       <div class="thumb-frame" id="hero-thumb">
         <video id="hero-player" controls playsinline poster=""></video>
@@ -39,7 +46,7 @@
         <div class="quality-dropdown" id="quality-dropdown">
           <button class="quality-trigger" id="quality-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
             <span id="quality-trigger-label">Automático</span>
-            <svg class="quality-chevron" width="10" height="6" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg">
+            <svg class="quality-chevron" width="10" height="6" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
@@ -54,15 +61,15 @@
       <div class="comments-section">
         <h3 id="comments-count">Comentários</h3>
         <form id="comment-form" class="comment-form">
-          <input type="text" id="comment-name" placeholder="Seu nome" required>
-          <textarea id="comment-body" rows="2" placeholder="Escreva um comentário..." required></textarea>
+          <input type="text" id="comment-name" placeholder="Seu nome" aria-label="Seu nome" required>
+          <textarea id="comment-body" rows="2" placeholder="Escreva um comentário..." aria-label="Comentário" required></textarea>
           <button type="submit" class="submit-btn">Comentar</button>
         </form>
         <div id="comments-list"></div>
       </div>
     </div>
 
-    <aside class="watch-sidebar">
+    <aside class="watch-sidebar" aria-label="Assista também">
       <p class="sidebar-label">Assista também</p>
       <div id="sidebar-list"></div>
     </aside>
