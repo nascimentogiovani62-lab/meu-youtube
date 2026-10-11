@@ -539,6 +539,55 @@
 
 .p-dl-sm dd { font-size: 13px; }
 
+/* ---------- renúncia fiscal declarada ---------- */
+
+.p-metric-value { overflow-wrap: anywhere; }
+
+.p-big {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+  margin: 0 0 4px;
+}
+
+.p-sub {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 22px 0 8px;
+}
+
+.p-bar-wide { grid-template-columns: minmax(104px, 170px) 1fr 108px; }
+
+.p-table-wrap { overflow-x: auto; margin-top: 4px; }
+
+.p-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+.p-table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.p-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.p-table th.num,
+.p-table td.num { text-align: right; }
+
+.p-table td.num { font-family: var(--font-mono); white-space: nowrap; }
+
+.p-ul { margin: 10px 0 0; padding-left: 20px; font-size: 13px; color: var(--ink-dim); line-height: 1.6; }
+
 /* ---------- responsivo (único bloco por breakpoint) ---------- */
 
 @media (max-width: 900px) {
@@ -585,6 +634,9 @@
   .p-card { padding: 16px; }
 
   .p-bar { grid-template-columns: 96px 1fr 64px; gap: 8px; }
+  .p-bar-wide { grid-template-columns: 92px 1fr 96px; }
+
+  .p-big { font-size: 24px; }
 
   .p-dl,
   .p-dl-sm { grid-template-columns: minmax(0, 1fr); }
