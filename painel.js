@@ -3,7 +3,9 @@
    Casca do painel fiscal. Rotas por hash: #panorama, #cnpj,
    #divida, #mesa (ou #mesa/2 pra abrir um incentivo), #impostos.
    Dados vêm de painel-dados.js (exemplo). A consulta por CNPJ
-   já é real (BrasilAPI, só cadastro).
+   é real: cadastro na BrasilAPI e, se a Edge Function consulta-gov
+   estiver publicada, sanções, contratos e renúncias do Portal da
+   Transparência.
    ========================================================= */
 
 (function () {
@@ -114,6 +116,19 @@
     return '<div class="p-card p-msg ' + (tipo || '') + '">' + esc(texto) + '</div>';
   }
 
+  function pendenteCard(titulo, fonte) {
+    return '<div class="p-metric p-metric-off"><p class="p-metric-label">' + esc(titulo) + '</p>' +
+      '<p class="p-metric-value muted">Não conectado</p><p class="p-metric-sub">' + esc(fonte) + '</p></div>';
+  }
+
+  function govPendente(nota) {
+    return '<div class="p-grid p-grid-3">' +
+        pendenteCard('Recebido do governo', 'Portal da Transparência') +
+        pendenteCard('Dívida ativa', 'PGFN') +
+        pendenteCard('Sanções', 'CEIS, CNEP e CEPIM') +
+      '</div>' + (nota ? '<p class="p-note p-note-gap">' + esc(nota) + '</p>' : '');
+  }
+
   function cnpjResultado(d, cnpj) {
     const ativa = /ativa/i.test(d.descricao_situacao_cadastral || '');
     const simples = d.opcao_pelo_simples === true ? ['Optante pelo Simples', 'accent']
@@ -131,10 +146,6 @@
       ['Capital social', capital]
     ];
 
-    const pendente = (titulo, fonte) =>
-      '<div class="p-metric p-metric-off"><p class="p-metric-label">' + esc(titulo) + '</p>' +
-      '<p class="p-metric-value muted">Não conectado</p><p class="p-metric-sub">' + esc(fonte) + '</p></div>';
-
     return '<section class="p-card">' +
         '<div class="p-company-head"><div>' +
           '<h2 class="p-company">' + esc(d.razao_social || '—') + '</h2>' +
@@ -145,11 +156,7 @@
         '</div></div>' +
         '<dl class="p-dl">' + campos.map((c) => '<div><dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1] || '—') + '</dd></div>').join('') + '</dl>' +
       '</section>' +
-      '<div class="p-grid p-grid-3">' +
-        pendente('Recebido do governo', 'Portal da Transparência') +
-        pendente('Dívida ativa', 'PGFN') +
-        pendente('Sanções', 'CEIS e CNEP') +
-      '</div>';
+      '<div id="gov-out">' + govPendente() + '</div>';
   }
 
   function bindCnpj() {
@@ -179,7 +186,7 @@
           if (!r.ok) { const err = new Error('http'); err.tipo = 'http'; err.status = r.status; throw err; }
           return r.json();
         })
-        .then((d) => { out.innerHTML = cnpjResultado(d, cnpj); })
+        .then((d) => { out.innerHTML = cnpjResultado(d, cnpj); carregarGov(cnpj); })
         .catch((err) => {
           if (err.tipo === 'nao_encontrado') {
             out.innerHTML = cnpjMensagem('CNPJ não encontrado na BrasilAPI. CNPJs muito recentes podem demorar a aparecer.', 'erro');
@@ -191,6 +198,129 @@
         })
         .then(() => { clearTimeout(timer); btn.disabled = false; });
     });
+  }
+
+
+  /* ---------- Portal da Transparência (via Edge Function consulta-gov) ---------- */
+
+  const ROTULOS_GOV = {
+    ceis: 'CEIS', cnep: 'CNEP', cepim: 'CEPIM',
+    contratos: 'Contratos', recebido: 'Recursos recebidos',
+    renunciaValores: 'Valores renunciados', imunesIsentas: 'Pessoa jurídica imune ou isenta',
+    habilitadas: 'Habilitada a benefício fiscal'
+  };
+
+  // Achata um registro do Portal em pares [campo, valor] (a estrutura exata
+  // varia por consulta, então a leitura é genérica).
+  function achatar(obj, prefixo, saida, nivel) {
+    Object.keys(obj).forEach((k) => {
+      const v = obj[k];
+      const chave = prefixo ? prefixo + ' › ' + k : k;
+      if (v === null || v === undefined || v === '') return;
+      if (Array.isArray(v)) {
+        if (v.length && typeof v[0] !== 'object') saida.push([chave, v.join(', ')]);
+        return;
+      }
+      if (typeof v === 'object') { if (nivel < 2) achatar(v, chave, saida, nivel + 1); return; }
+      saida.push([chave, String(v)]);
+    });
+    return saida;
+  }
+
+  const qtd = (r) => (r && r.ok ? (typeof r.total === 'number' ? r.total : r.itens.length) : null);
+  const somaOk = (lista) => lista.reduce((s, r) => s + (qtd(r) || 0), 0);
+  const todosOk = (lista) => lista.every((r) => r && r.ok);
+
+  function plural(n, um, varios) { return fmt(n) + ' ' + (n === 1 ? um : varios); }
+
+  function govDetalhes(res) {
+    const blocos = Object.keys(ROTULOS_GOV).map((k) => {
+      const r = res[k];
+      if (!r) return '';
+      if (!r.ok) {
+        return '<p class="p-note">' + esc(ROTULOS_GOV[k]) + ': não consultado (' + esc(r.erro || 'erro') + ').</p>';
+      }
+      if (!r.itens.length) return '';
+      const itens = r.itens.map((it) => {
+        const campos = achatar(it, '', [], 0).slice(0, 14);
+        return '<dl class="p-dl p-dl-sm">' + campos.map((c) =>
+          '<div><dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1]) + '</dd></div>').join('') + '</dl>';
+      }).join('');
+      const mais = r.total > r.itens.length ? ' (mostrando ' + r.itens.length + ' de ' + r.total + ')' : '';
+      return '<details class="p-det"><summary>' + esc(ROTULOS_GOV[k]) + ' · ' + plural(r.itens.length, 'registro', 'registros') + esc(mais) + '</summary>' + itens + '</details>';
+    }).join('');
+    return blocos ? '<section class="p-card"><h2>Detalhes do Portal da Transparência</h2>' + blocos +
+      '<p class="p-note">Primeira página de cada consulta. Os nomes dos campos são os do Portal.</p></section>' : '';
+  }
+
+  function govHtml(d) {
+    const res = d.resultados || {};
+    const sanc = [res.ceis, res.cnep, res.cepim];
+    const nSanc = somaOk(sanc);
+    let sancValor, sancCor, sancSub;
+    if (nSanc > 0) { sancValor = plural(nSanc, 'registro', 'registros'); sancCor = 'danger'; sancSub = 'CEIS, CNEP ou CEPIM'; }
+    else if (todosOk(sanc)) { sancValor = 'Nenhuma'; sancCor = 'ok'; sancSub = 'CEIS, CNEP e CEPIM'; }
+    else { sancValor = 'Indisponível'; sancCor = 'muted'; sancSub = 'consulta falhou'; }
+
+    const nContr = qtd(res.contratos);
+    const nRec = qtd(res.recebido);
+    const semRecebido = nContr === null && nRec === null;
+    const recebidoValor = semRecebido ? 'Indisponível' : plural(nContr || 0, 'contrato', 'contratos');
+    const jan = d.janelaRecursos ? d.janelaRecursos.de + ' a ' + d.janelaRecursos.ate : 'últimos 12 meses';
+    const recebidoSub = nRec === null ? 'recursos: consulta falhou'
+      : '1ª página · ' + plural(nRec, 'lançamento', 'lançamentos') + ' de recursos (' + jan + ')';
+
+    const ren = [res.renunciaValores, res.imunesIsentas, res.habilitadas];
+    const nRen = somaOk(ren);
+    let renValor, renCor, renSub;
+    if (nRen > 0) { renValor = plural(nRen, 'registro', 'registros'); renCor = 'warn'; renSub = 'valores, imunidade/isenção ou benefício'; }
+    else if (todosOk(ren)) { renValor = 'Nenhum'; renCor = ''; renSub = 'no Portal da Transparência'; }
+    else { renValor = 'Indisponível'; renCor = 'muted'; renSub = 'consulta falhou'; }
+
+    return '<div class="p-grid p-grid-3">' +
+        metric('Recebido do governo', recebidoValor, recebidoSub, semRecebido ? 'muted' : '') +
+        pendenteCard('Dívida ativa', 'PGFN') +
+        metric('Sanções', sancValor, sancSub, sancCor) +
+      '</div>' +
+      '<div class="p-grid p-grid-3">' +
+        metric('Renúncia fiscal e benefícios', renValor, renSub, renCor) +
+      '</div>' +
+      (d.doCache ? '<p class="p-note">Resultado guardado há menos de 6 horas.</p>' : '') +
+      govDetalhes(res);
+  }
+
+  function carregarGov(cnpj) {
+    const alvo = $('gov-out');
+    if (!alvo) return;
+
+    if (typeof sb === 'undefined' || !sb.functions) {
+      alvo.innerHTML = govPendente('Conexão com o Supabase não carregada nesta página.');
+      return;
+    }
+
+    alvo.innerHTML = '<div class="p-grid p-grid-3">' +
+      pendenteCard('Recebido do governo', 'consultando…') +
+      pendenteCard('Dívida ativa', 'PGFN') +
+      pendenteCard('Sanções', 'consultando…') + '</div>';
+
+    sb.functions.invoke('consulta-gov', { body: { cnpj: cnpj } })
+      .then((resp) => {
+        if (resp.error) {
+          const st = resp.error.context && resp.error.context.status;
+          let motivo = 'a função consulta-gov não respondeu';
+          if (st === 404) motivo = 'a função consulta-gov ainda não foi publicada no Supabase';
+          else if (st === 401) motivo = 'o Supabase recusou a chamada (conferir a chave anon)';
+          else if (st === 429) motivo = 'muitas consultas seguidas, tente em 1 minuto';
+          else if (st === 500) motivo = 'a função está sem a chave do Portal (segredo PORTAL_TRANSPARENCIA_KEY)';
+          else if (st) motivo = 'a função respondeu com erro ' + st;
+          alvo.innerHTML = govPendente('Portal da Transparência indisponível: ' + motivo + '.');
+          return;
+        }
+        alvo.innerHTML = govHtml(resp.data || {});
+      })
+      .catch(() => {
+        alvo.innerHTML = govPendente('Portal da Transparência indisponível: falha de rede ao chamar a função.');
+      });
   }
 
   /* ---------- Dívida ativa ---------- */
