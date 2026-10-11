@@ -308,6 +308,9 @@
         if (resp.error) {
           const st = resp.error.context && resp.error.context.status;
           let motivo = 'a função consulta-gov não respondeu';
+          if (!st && resp.error.name === 'FunctionsFetchError') {
+            motivo = 'o navegador não conseguiu chamar a função (nome diferente, não publicada, chamada recusada ou erro ao iniciar). Veja os logs da função no Supabase';
+          }
           if (st === 404) motivo = 'a função consulta-gov ainda não foi publicada no Supabase';
           else if (st === 401) motivo = 'o Supabase recusou a chamada (conferir a chave anon)';
           else if (st === 429) motivo = 'muitas consultas seguidas, tente em 1 minuto';
