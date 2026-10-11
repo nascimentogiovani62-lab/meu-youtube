@@ -1,0 +1,566 @@
+/* =========================================================
+   painel.css — painel fiscal
+   Depende de styles.css (tokens, cabeçalho, rodapé).
+   Todas as classes p-* são geradas pelo painel.js.
+   ========================================================= */
+
+:root {
+  --warn: #E0B04F;
+}
+
+.painel {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 32px var(--gutter) 80px;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.p-view { min-width: 0; outline: none; }
+
+/* ---------- menu dos módulos ---------- */
+
+.p-nav {
+  position: sticky;
+  top: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.p-nav-label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.p-nav-item {
+  font-size: 14px;
+  color: var(--ink-dim);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.p-nav-item:hover { background: var(--bg-panel); color: var(--ink); }
+
+.p-nav-item[aria-current="page"] {
+  background: var(--bg-panel);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* ---------- cabeçalho de cada módulo ---------- */
+
+.p-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.p-head h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.25;
+  margin: 0 0 6px;
+}
+
+.p-lead {
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 62ch;
+  margin: 0;
+}
+
+.p-tag {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--warn);
+  border: 1px solid rgba(224, 176, 79, 0.4);
+  border-radius: var(--radius);
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+/* ---------- grades e cartões ---------- */
+
+.p-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.p-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.p-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.p-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+
+.p-two-mesa { grid-template-columns: 1.1fr 1fr; }
+
+.p-two .p-card { margin-bottom: 0; }
+
+.p-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.p-card h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 14px;
+}
+
+.p-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.p-card > .p-note { margin-top: 12px; }
+
+.p-note-gap { margin: 16px 0 12px; }
+
+/* ---------- métricas ---------- */
+
+.p-metric {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+
+.p-metric-label { font-size: 12px; color: var(--ink-dim); margin: 0; }
+
+.p-metric-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.2;
+  margin: 4px 0 0;
+}
+
+.p-metric-value.muted { color: var(--ink-dim); font-size: 16px; }
+.p-metric-value.ok { color: var(--ok); }
+.p-metric-value.warn { color: var(--warn); }
+.p-metric-value.danger { color: var(--err); }
+
+.p-metric-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dim);
+  margin: 2px 0 0;
+}
+
+.p-metric-off { background: transparent; border-style: dashed; border-color: var(--line-strong); }
+
+/* ---------- barras ---------- */
+
+.p-bar {
+  display: grid;
+  grid-template-columns: minmax(104px, 150px) 1fr 76px;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  padding: 7px 0;
+}
+
+.p-bar-label { color: var(--ink-dim); line-height: 1.3; }
+
+.p-track {
+  display: block;
+  height: 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.p-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.p-fill.ok { background: var(--ok); }
+.p-fill.warn { background: var(--warn); }
+.p-fill.danger { background: var(--err); }
+
+.p-bar-value { font-family: var(--font-mono); font-size: 12px; text-align: right; }
+
+.p-bar-link {
+  margin: 0 -8px;
+  padding: 7px 8px;
+  border-radius: var(--radius);
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.p-bar-link:hover { background: var(--bg-raised); }
+
+.p-bar-link:hover .p-bar-label { color: var(--ink); }
+
+/* ---------- evolução por ano ---------- */
+
+.p-cols {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  height: 160px;
+}
+
+.p-col {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 22px;
+}
+
+.p-col-bar {
+  width: 100%;
+  min-height: 2px;
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+}
+
+.p-col span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+
+/* ---------- formulário e campos ---------- */
+
+.p-form { margin-bottom: 16px; max-width: 520px; }
+
+.p-label {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin: 0 0 6px;
+}
+
+.p-form-row { display: flex; gap: 8px; }
+
+.p-form-row .p-input { flex: 1; min-width: 0; }
+
+.p-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  color-scheme: dark;
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  transition: border-color 0.2s ease;
+}
+
+.p-input::placeholder { color: var(--ink-dim); }
+
+.p-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.p-input-sm { width: auto; font-size: 13px; padding: 7px 10px; }
+
+.p-card .p-input { margin-bottom: 18px; }
+
+.p-btn {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.p-btn:hover { opacity: 0.9; }
+
+.p-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.p-msg { color: var(--ink-dim); font-size: 14px; }
+
+.p-msg.erro { color: var(--err); border-color: rgba(217, 106, 106, 0.4); }
+
+/* ---------- ficha da empresa ---------- */
+
+.p-company-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.p-company {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0 0 4px !important;
+}
+
+.p-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.p-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-dim);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.p-badge.ok { color: var(--ok); border-color: rgba(110, 191, 127, 0.4); background: rgba(110, 191, 127, 0.08); }
+.p-badge.warn { color: var(--warn); border-color: rgba(224, 176, 79, 0.4); background: rgba(224, 176, 79, 0.08); }
+.p-badge.danger { color: var(--err); border-color: rgba(217, 106, 106, 0.4); background: rgba(217, 106, 106, 0.08); }
+.p-badge.accent { color: var(--accent); border-color: rgba(79, 184, 196, 0.4); background: var(--accent-soft); }
+
+.p-dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 20px 0 0;
+}
+
+.p-dl dt { font-size: 12px; color: var(--ink-dim); margin: 0 0 2px; }
+
+.p-dl dd { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+
+/* ---------- lista (dívida ativa) ---------- */
+
+.p-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.p-list-row:first-child { border-top: none; padding-top: 0; }
+
+.p-list-title { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+
+.p-list-end { text-align: right; flex: none; }
+
+.p-list-end .p-badge { margin-top: 4px; }
+
+/* ---------- Mesa de análise ---------- */
+
+.p-range-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.p-range-head .p-label { margin-bottom: 0; }
+
+.p-hint { display: block; font-size: 12px; font-weight: 400; margin-top: 2px; }
+
+.p-range-val { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+
+.p-range {
+  width: 100%;
+  accent-color: var(--accent);
+  margin: 10px 0 18px;
+}
+
+.p-verdict-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.p-ratio {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 1.1;
+  margin: 0 0 14px;
+}
+
+.p-meter {
+  position: relative;
+  height: 10px;
+  background: var(--bg);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.p-meter::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 1.5px dashed var(--line-strong);
+}
+
+.p-meter .p-fill { border-radius: 5px; transition: width 0.2s ease; }
+
+.p-meter-scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-dim);
+  margin-top: 6px;
+}
+
+.p-link {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.p-link:hover { text-decoration: underline; }
+
+/* ---------- Para onde vai o imposto ---------- */
+
+.p-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.p-card .p-input-sm { margin-bottom: 0; }
+
+.p-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.p-tab {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.p-tab:hover { border-color: var(--line-strong); color: var(--ink); }
+
+.p-tab[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.p-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.p-total strong { font-family: var(--font-display); font-size: 20px; }
+
+.p-rule {
+  background: var(--bg-panel);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.p-rule strong { color: var(--ink); }
+
+/* ---------- responsivo (único bloco por breakpoint) ---------- */
+
+@media (max-width: 900px) {
+  .painel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding: 20px var(--gutter) 56px;
+  }
+
+  .p-nav {
+    position: static;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .p-nav-label { display: none; }
+
+  .p-nav-item {
+    flex: none;
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .p-nav-item[aria-current="page"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    box-shadow: none;
+  }
+
+  .p-two,
+  .p-two-mesa { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .p-head { flex-direction: column; gap: 10px; }
+  .p-head h1 { font-size: 20px; }
+
+  .p-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .p-card { padding: 16px; }
+
+  .p-bar { grid-template-columns: 96px 1fr 64px; gap: 8px; }
+
+  .p-dl { grid-template-columns: minmax(0, 1fr); }
+
+  .p-ratio { font-size: 28px; }
+
+  .p-form-row { flex-direction: column; }
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#14181C">
+<title>Painel fiscal — Saburi/play</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="painel.css">
+</head>
+<body>
+
+<a class="skip-link" href="#p-view">Pular para o conteúdo</a>
+
+<header class="site-header">
+  <div class="brand-group">
+    <a href="index.html" class="brand" aria-label="saburi v.play, início">
+      <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M 175 150 L 110 256 L 175 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 337 150 L 402 256 L 337 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 222 188 L 222 324 L 328 256 Z" fill="currentColor"/>
+      </svg>
+      saburi<span class="brand-badge">v.play</span><span class="brand-star" aria-hidden="true">★</span>
+    </a>
+    <a href="https://videos.ssgf.com.br/status.html" class="status-link" target="_blank" rel="noopener" aria-label="Status do servidor"><span class="status-dot" id="status-dot"></span></a>
+  </div>
+  <nav class="site-nav" aria-label="Principal">
+    <a href="index.html" class="tab-link">Vídeos</a>
+    <a href="biblioteca.html" class="tab-link">Biblioteca</a>
+    <a href="painel.html" class="tab-link active" aria-current="page">Painel fiscal</a>
+  </nav>
+</header>
+
+<main class="painel">
+  <nav class="p-nav" id="p-nav" aria-label="Módulos do painel fiscal"></nav>
+  <div class="p-view" id="p-view" tabindex="-1">
+    <p class="empty-msg">Carregando painel…</p>
+    <noscript><p class="empty-msg">O painel precisa de JavaScript pra funcionar.</p></noscript>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-brand">
+    <svg class="brand-icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M 175 150 L 110 256 L 175 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 337 150 L 402 256 L 337 362" fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 222 188 L 222 324 L 328 256 Z" fill="currentColor"/>
+    </svg>
+    saburi<span class="brand-badge">v.play</span><span class="brand-star" aria-hidden="true">★</span>
+  </div>
+  <div class="footer-links">
+    <a href="https://ssgf.com.br" target="_blank" rel="noopener">ssgf.com.br</a>
+    <a href="index.html#contato">contato</a>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="header-status.js"></script>
+<script src="painel-dados.js"></script>
+<script src="painel.js"></script>
+</body>
+</html>
