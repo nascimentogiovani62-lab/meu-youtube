@@ -38,14 +38,15 @@
       '<p class="p-metric-sub">' + esc(sub || '') + '</p></div>';
   }
 
-  function bar(rotulo, v, max, texto, href) {
+  function bar(rotulo, v, max, texto, href, classe) {
     const pct = max > 0 ? Math.round((v / max) * 100) : 0;
     const inner = '<span class="p-bar-label">' + esc(rotulo) + '</span>' +
       '<span class="p-track"><span class="p-fill" style="width:' + pct + '%"></span></span>' +
       '<span class="p-bar-value">' + esc(texto) + '</span>';
+    const extra = classe ? ' ' + classe : '';
     return href
-      ? '<a class="p-bar p-bar-link" href="' + href + '">' + inner + '</a>'
-      : '<div class="p-bar">' + inner + '</div>';
+      ? '<a class="p-bar p-bar-link' + extra + '" href="' + href + '">' + inner + '</a>'
+      : '<div class="p-bar' + extra + '">' + inner + '</div>';
   }
 
   /* ---------- Panorama ---------- */
@@ -203,6 +204,10 @@
 
   /* ---------- Portal da Transparência (via Edge Function consulta-gov) ---------- */
 
+  // Nome da Edge Function no Supabase. Se o painel criou a função com outro
+  // nome (o editor às vezes sugere algo como "dynamic-action"), troque aqui.
+  const FUNCAO_GOV = 'consulta-gov';
+
   const ROTULOS_GOV = {
     ceis: 'CEIS', cnep: 'CNEP', cepim: 'CEPIM',
     contratos: 'Contratos', recebido: 'Recursos recebidos',
@@ -253,6 +258,71 @@
       '<p class="p-note">Primeira página de cada consulta. Os nomes dos campos são os do Portal.</p></section>' : '';
   }
 
+  const brl = (n) => Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  function somarPor(linhas, campo) {
+    const m = {};
+    linhas.forEach((l) => { m[l[campo]] = (m[l[campo]] || 0) + l.valor; });
+    return Object.keys(m).map((k) => ({ nome: k, valor: m[k] }));
+  }
+
+  // Resume os "valores renunciados" do Portal: total, por ano e por benefício.
+  function renunciaResumo(r) {
+    if (!r || !r.ok || !r.itens.length) return null;
+    const linhas = r.itens.map((it) => ({
+      ano: it.ano == null ? 'Sem ano' : String(it.ano),
+      valor: it.valorRenunciado == null ? NaN : Number(it.valorRenunciado),
+      beneficio: it.descricaoBeneficioFiscal || 'Benefício não informado',
+      tributo: it.tributo || '',
+      forma: it.formaTributacao || '',
+      tipo: it.tipoRenuncia || '',
+      base: it.descricaoFundamentoLegal || ''
+    })).filter((l) => isFinite(l.valor));
+    if (!linhas.length) return null;
+
+    linhas.sort((a, b) => (a.ano < b.ano ? 1 : a.ano > b.ano ? -1 : b.valor - a.valor));
+    return {
+      linhas: linhas,
+      total: linhas.reduce((s, l) => s + l.valor, 0),
+      porAno: somarPor(linhas, 'ano').sort((a, b) => (a.nome < b.nome ? 1 : -1)),
+      porBeneficio: somarPor(linhas, 'beneficio').sort((a, b) => b.valor - a.valor),
+      parcial: typeof r.total === 'number' && r.total > r.itens.length,
+      nTotal: typeof r.total === 'number' ? r.total : r.itens.length
+    };
+  }
+
+  const unicos = (lista) => lista.filter((v, i) => v && lista.indexOf(v) === i);
+
+  function renunciaCard(rs) {
+    if (!rs) return '';
+    const maxAno = Math.max.apply(null, rs.porAno.map((x) => x.valor));
+    const maxBen = Math.max.apply(null, rs.porBeneficio.map((x) => x.valor));
+    const anos = rs.porAno.map((x) => bar(x.nome, x.valor, maxAno, brl(x.valor), '', 'p-bar-wide')).join('');
+    const bens = rs.porBeneficio.map((x) => bar(x.nome, x.valor, maxBen, brl(x.valor), '', 'p-bar-wide')).join('');
+    const corpo = rs.linhas.map((l) =>
+      '<tr><td>' + esc(l.ano) + '</td><td>' + esc(l.beneficio) + '</td><td>' + esc(l.tributo) +
+      '</td><td>' + esc(l.forma) + '</td><td class="num">' + esc(brl(l.valor)) + '</td></tr>').join('');
+    const anosOrd = rs.porAno.map((x) => x.nome).filter((a) => a !== 'Sem ano');
+    const periodo = anosOrd.length > 1 ? anosOrd[anosOrd.length - 1] + ' a ' + anosOrd[0] : (anosOrd[0] || '');
+    const tipos = unicos(rs.linhas.map((l) => l.tipo));
+    const bases = unicos(rs.linhas.map((l) => l.base));
+
+    return '<section class="p-card"><h2>Renúncia fiscal declarada</h2>' +
+      '<p class="p-big">' + esc(brl(rs.total)) + '</p>' +
+      '<p class="p-note">Total renunciado em ' + plural(rs.linhas.length, 'registro', 'registros') +
+        (periodo ? ' (' + esc(periodo) + ')' : '') + (rs.parcial ? ', mostrando ' + rs.linhas.length + ' de ' + rs.nTotal : '') + '</p>' +
+      '<h3 class="p-sub">Por ano</h3>' + anos +
+      '<h3 class="p-sub">Por benefício</h3>' + bens +
+      '<h3 class="p-sub">Registros</h3>' +
+      '<div class="p-table-wrap"><table class="p-table"><thead><tr><th>Ano</th><th>Benefício</th><th>Tributo</th><th>Forma</th><th class="num">Valor</th></tr></thead>' +
+        '<tbody>' + corpo + '</tbody></table></div>' +
+      '<p class="p-note p-note-gap">Valor renunciado é o imposto que o governo deixou de arrecadar por causa do benefício, e não dinheiro repassado à empresa.' +
+        (tipos.length ? ' Tipo: ' + esc(tipos.join('; ')) + '.' : '') + ' Primeira página da consulta.</p>' +
+      (bases.length ? '<details class="p-det"><summary>Base legal</summary><ul class="p-ul">' +
+        bases.map((b) => '<li>' + esc(b) + '</li>').join('') + '</ul></details>' : '') +
+      '</section>';
+  }
+
   function govHtml(d) {
     const res = d.resultados || {};
     const sanc = [res.ceis, res.cnep, res.cepim];
@@ -272,8 +342,15 @@
 
     const ren = [res.renunciaValores, res.imunesIsentas, res.habilitadas];
     const nRen = somaOk(ren);
+    const rs = renunciaResumo(res.renunciaValores);
+    const outrosRen = somaOk([res.imunesIsentas, res.habilitadas]);
     let renValor, renCor, renSub;
-    if (nRen > 0) { renValor = plural(nRen, 'registro', 'registros'); renCor = 'warn'; renSub = 'valores, imunidade/isenção ou benefício'; }
+    if (rs) {
+      renValor = brl(rs.total); renCor = 'warn';
+      renSub = plural(rs.linhas.length, 'registro', 'registros') + ' de valores renunciados' +
+        (outrosRen > 0 ? ' · mais ' + outrosRen + ' em imunidade ou benefício' : '');
+    }
+    else if (nRen > 0) { renValor = plural(nRen, 'registro', 'registros'); renCor = 'warn'; renSub = 'valores, imunidade/isenção ou benefício'; }
     else if (todosOk(ren)) { renValor = 'Nenhum'; renCor = ''; renSub = 'no Portal da Transparência'; }
     else { renValor = 'Indisponível'; renCor = 'muted'; renSub = 'consulta falhou'; }
 
@@ -286,6 +363,7 @@
         metric('Renúncia fiscal e benefícios', renValor, renSub, renCor) +
       '</div>' +
       (d.doCache ? '<p class="p-note">Resultado guardado há menos de 6 horas.</p>' : '') +
+      renunciaCard(rs) +
       govDetalhes(res);
   }
 
@@ -303,15 +381,15 @@
       pendenteCard('Dívida ativa', 'PGFN') +
       pendenteCard('Sanções', 'consultando…') + '</div>';
 
-    sb.functions.invoke('consulta-gov', { body: { cnpj: cnpj } })
+    sb.functions.invoke(FUNCAO_GOV, { body: { cnpj: cnpj } })
       .then((resp) => {
         if (resp.error) {
           const st = resp.error.context && resp.error.context.status;
-          let motivo = 'a função consulta-gov não respondeu';
+          let motivo = 'a função ' + FUNCAO_GOV + ' não respondeu';
           if (!st && resp.error.name === 'FunctionsFetchError') {
             motivo = 'o navegador não conseguiu chamar a função (nome diferente, não publicada, chamada recusada ou erro ao iniciar). Veja os logs da função no Supabase';
           }
-          if (st === 404) motivo = 'a função consulta-gov ainda não foi publicada no Supabase';
+          if (st === 404) motivo = 'a função ' + FUNCAO_GOV + ' ainda não foi publicada no Supabase';
           else if (st === 401) motivo = 'o Supabase recusou a chamada (conferir a chave anon)';
           else if (st === 429) motivo = 'muitas consultas seguidas, tente em 1 minuto';
           else if (st === 500) motivo = 'a função está sem a chave do Portal (segredo PORTAL_TRANSPARENCIA_KEY)';
