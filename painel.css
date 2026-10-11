@@ -511,6 +511,34 @@
 
 .p-rule strong { color: var(--ink); }
 
+/* ---------- detalhes do Portal da Transparência ---------- */
+
+.p-det {
+  border-top: 1px solid var(--line);
+  padding: 10px 0;
+}
+
+.p-det:first-of-type { border-top: none; padding-top: 0; }
+
+.p-det summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.p-det summary:hover { color: var(--accent); }
+
+.p-dl-sm {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+  margin: 12px 0 0;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius);
+}
+
+.p-dl-sm dd { font-size: 13px; }
+
 /* ---------- responsivo (único bloco por breakpoint) ---------- */
 
 @media (max-width: 900px) {
@@ -558,7 +586,8 @@
 
   .p-bar { grid-template-columns: 96px 1fr 64px; gap: 8px; }
 
-  .p-dl { grid-template-columns: minmax(0, 1fr); }
+  .p-dl,
+  .p-dl-sm { grid-template-columns: minmax(0, 1fr); }
 
   .p-ratio { font-size: 28px; }
 
