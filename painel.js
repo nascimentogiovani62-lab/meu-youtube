@@ -212,7 +212,9 @@
     ceis: 'CEIS', cnep: 'CNEP', cepim: 'CEPIM',
     contratos: 'Contratos', recebido: 'Recursos recebidos',
     renunciaValores: 'Valores renunciados', imunesIsentas: 'Pessoa jurídica imune ou isenta',
-    habilitadas: 'Habilitada a benefício fiscal'
+    habilitadas: 'Habilitada a benefício fiscal',
+    pessoaJuridica: 'Cadastro no Portal da Transparência',
+    notasFiscais: 'Notas fiscais emitidas ao governo federal'
   };
 
   // Achata um registro do Portal em pares [campo, valor] (a estrutura exata
@@ -238,12 +240,14 @@
 
   function plural(n, um, varios) { return fmt(n) + ' ' + (n === 1 ? um : varios); }
 
-  function govDetalhes(res) {
-    const blocos = Object.keys(ROTULOS_GOV).map((k) => {
+  function govDetalhes(res, anos) {
+    const rotulos = Object.assign({}, ROTULOS_GOV);
+    (anos || []).forEach((a) => { rotulos['pagamentos' + a] = 'Maiores pagamentos federais em ' + a; });
+    const blocos = Object.keys(rotulos).map((k) => {
       const r = res[k];
       if (!r) return '';
       if (!r.ok) {
-        return '<p class="p-note">' + esc(ROTULOS_GOV[k]) + ': não consultado (' + esc(r.erro || 'erro') + ').</p>';
+        return '<p class="p-note">' + esc(rotulos[k]) + ': não consultado (' + esc(r.erro || 'erro') + ').</p>';
       }
       if (!r.itens.length) return '';
       const itens = r.itens.map((it) => {
@@ -252,7 +256,7 @@
           '<div><dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1]) + '</dd></div>').join('') + '</dl>';
       }).join('');
       const mais = r.total > r.itens.length ? ' (mostrando ' + r.itens.length + ' de ' + r.total + ')' : '';
-      return '<details class="p-det"><summary>' + esc(ROTULOS_GOV[k]) + ' · ' + plural(r.itens.length, 'registro', 'registros') + esc(mais) + '</summary>' + itens + '</details>';
+      return '<details class="p-det"><summary>' + esc(rotulos[k]) + ' · ' + plural(r.itens.length, 'registro', 'registros') + esc(mais) + '</summary>' + itens + '</details>';
     }).join('');
     return blocos ? '<section class="p-card"><h2>Detalhes do Portal da Transparência</h2>' + blocos +
       '<p class="p-note">Primeira página de cada consulta. Os nomes dos campos são os do Portal.</p></section>' : '';
@@ -354,6 +358,17 @@
     else if (todosOk(ren)) { renValor = 'Nenhum'; renCor = ''; renSub = 'no Portal da Transparência'; }
     else { renValor = 'Indisponível'; renCor = 'muted'; renSub = 'consulta falhou'; }
 
+    const anosPag = d.anosPagamentos || [];
+    const pag = anosPag.map((a) => res['pagamentos' + a]);
+    const anosComPag = pag.filter((r) => r && r.ok && r.itens.length > 0).length;
+    let pagValor = 'Indisponível', pagSub = 'consulta falhou', pagCor = 'muted';
+    if (anosPag.length && todosOk(pag)) {
+      pagValor = anosComPag + ' de ' + anosPag.length + ' anos'; pagCor = anosComPag ? '' : 'muted';
+      pagSub = 'com pagamento federal (' + anosPag[anosPag.length - 1] + ' a ' + anosPag[0] + ')';
+    } else if (anosPag.length && pag.some((r) => r && r.ok)) {
+      pagValor = anosComPag + ' de ' + anosPag.length + ' anos'; pagSub = 'algumas consultas falharam';
+    }
+
     return '<div class="p-grid p-grid-3">' +
         metric('Recebido do governo', recebidoValor, recebidoSub, semRecebido ? 'muted' : '') +
         pendenteCard('Dívida ativa', 'PGFN') +
@@ -361,10 +376,11 @@
       '</div>' +
       '<div class="p-grid p-grid-3">' +
         metric('Renúncia fiscal e benefícios', renValor, renSub, renCor) +
+        (anosPag.length ? metric('Pagamentos federais', pagValor, pagSub, pagCor) : '') +
       '</div>' +
       (d.doCache ? '<p class="p-note">Resultado guardado há menos de 6 horas.</p>' : '') +
       renunciaCard(rs) +
-      govDetalhes(res);
+      govDetalhes(res, d.anosPagamentos);
   }
 
   function carregarGov(cnpj) {
