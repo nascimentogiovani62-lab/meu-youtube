@@ -12,6 +12,7 @@
   'use strict';
 
   const D = window.PAINEL_DADOS;
+  const G = window.DGT_PLOA_2026 || null;
   const $ = (id) => document.getElementById(id);
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
@@ -23,13 +24,18 @@
     maximumFractionDigits: d || 0
   });
 
-  const S = { k: 0, a: D.incentivos[0].a, nv: 0, ar: 0 };
+  const S = {
+    k: 0, a: G ? 50 : D.incentivos[0].a, nv: 0, ar: 0,
+    pv: 0, cq: '', ct: '', cv: false,   // Panorama real: aba e filtros do catálogo
+    mp: 0, mr: {}, me: {}                // Mesa real: principal escolhido e números do usuário
+  };
 
   /* ---------- peças comuns ---------- */
 
-  function head(titulo, sub, exemplo) {
+  function head(titulo, sub, exemplo, tag) {
     return '<header class="p-head"><div><h1>' + esc(titulo) + '</h1><p class="p-lead">' + esc(sub) + '</p></div>' +
-      (exemplo ? '<span class="p-tag">Dados de exemplo</span>' : '') + '</header>';
+      (exemplo ? '<span class="p-tag">Dados de exemplo</span>' : '') +
+      (tag ? '<span class="p-tag p-tag-real">' + esc(tag) + '</span>' : '') + '</header>';
   }
 
   function metric(rotulo, valor, sub, cor) {
@@ -47,6 +53,191 @@
     return href
       ? '<a class="p-bar p-bar-link' + extra + '" href="' + href + '">' + inner + '</a>'
       : '<div class="p-bar' + extra + '">' + inner + '</div>';
+  }
+
+  /* ---------- Panorama e Mesa com dados reais (DGT PLOA 2026) ---------- */
+
+  const bi = (v) => 'R$ ' + fmt(v / 1e9, 1) + ' bi';
+  const PV_ABAS = ['Por função', 'Por tributo', 'Principais benefícios', 'Por região', 'Catálogo'];
+
+  function nomeCurto(n) { return String(n).replace(/\s+-\s+[A-Za-z\-]+$/, ''); }
+
+  function totaisRegiao() {
+    const t = [0, 0, 0, 0, 0];
+    G.regiaoPorFuncao.forEach((l) => l[1].forEach((v, i) => { t[i] += v; }));
+    return t;
+  }
+
+  function pvCorpo() {
+    if (S.pv === 0) {
+      const max = G.porFuncao[0][1];
+      return '<h2>Previsão por função orçamentária</h2>' +
+        G.porFuncao.map((f) => bar(f[0] + ' (' + fmt(f[2], 1) + '%)', f[1], max, bi(f[1]), '', 'p-bar-wide')).join('') +
+        '<p class="p-note">Função é a área do orçamento que o benefício atende. "Não definida" reúne benefícios sem função.</p>';
+    }
+    if (S.pv === 1) {
+      const max = Math.max.apply(null, G.porTributo.map((t) => t[1]));
+      return '<h2>Previsão por tributo</h2>' +
+        G.porTributo.slice().sort((a, b) => b[1] - a[1])
+          .map((t) => bar(nomeCurto(t[0]) + ' (' + fmt(t[4], 1) + '%)', t[1], max, bi(t[1]), '', 'p-bar-wide')).join('') +
+        '<p class="p-note">Percentual = parte de cada tributo no total de renúncia.</p>';
+    }
+    if (S.pv === 2) {
+      const lista = G.principais.slice(0, 20);
+      return '<h2>Maiores gastos tributários</h2>' +
+        lista.map((x, i) => bar(x[0] + ' (' + fmt(x[2], 1) + '%)', x[1], lista[0][1], bi(x[1]), '#mesa/p' + i, 'p-bar-wide')).join('') +
+        '<p class="p-note">Toque num benefício pra analisar o custo dele na Mesa.</p>';
+    }
+    if (S.pv === 3) {
+      const tot = totaisRegiao();
+      const soma = tot.reduce((a, b) => a + b, 0);
+      const max = Math.max.apply(null, tot);
+      return '<h2>Previsão por região</h2>' +
+        G.regioes.map((n, i) => bar(n + ' (' + fmt((tot[i] / soma) * 100, 1) + '%)', tot[i], max, bi(tot[i]), '', 'p-bar-wide')).join('') +
+        '<p class="p-note">Regionalização feita pela Receita. Parte do total fica de fora quando o benefício não tem região definida.</p>';
+    }
+    return catalogoHtml();
+  }
+
+  function catalogoFiltrado() {
+    const q = S.cq.trim().toLowerCase();
+    return G.beneficios.filter((b) =>
+      (!q || b.n.toLowerCase().indexOf(q) >= 0) && (!S.ct || b.t === S.ct) && (!S.cv || b.s === 'v')
+    ).sort((a, b) => (b.v || 0) - (a.v || 0));
+  }
+
+  function catalogoTabela() {
+    const todos = catalogoFiltrado();
+    const mostrados = todos.slice(0, 60);
+    const linhas = mostrados.map((b) =>
+      '<tr><td>' + esc(b.n) + '</td><td>' + esc(b.t) + '</td><td>' + (b.s === 'e' ? 'encerrado em ' : '') + esc(b.p) +
+      '</td><td class="num">' + (b.v == null ? '—' : esc(bi(b.v))) + '</td></tr>').join('');
+    return '<div class="p-table-wrap"><table class="p-table"><thead><tr><th>Benefício</th><th>Tributo</th><th>Vigência</th><th class="num">Previsão 2026</th></tr></thead><tbody>' +
+      (linhas || '<tr><td colspan="4">Nenhum benefício encontrado.</td></tr>') + '</tbody></table></div>' +
+      '<p class="p-note p-note-gap">' + plural(todos.length, 'benefício', 'benefícios') +
+      (todos.length > 60 ? ', mostrando os 60 de maior valor' : '') + '. Um mesmo programa aparece uma vez por tributo.</p>';
+  }
+
+  function catalogoHtml() {
+    const tributos = G.beneficios.map((b) => b.t).filter((t, i, a) => a.indexOf(t) === i).sort();
+    return '<h2>Catálogo de benefícios fiscais</h2>' +
+      '<div class="p-toolbar">' +
+        '<input class="p-input p-input-sm" id="cat-q" type="search" placeholder="Buscar benefício" value="' + esc(S.cq) + '" aria-label="Buscar benefício">' +
+        '<select class="p-input p-input-sm" id="cat-t" aria-label="Tributo"><option value="">Todos os tributos</option>' +
+          tributos.map((t) => '<option value="' + esc(t) + '"' + (t === S.ct ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select>' +
+        '<label class="p-check"><input type="checkbox" id="cat-v"' + (S.cv ? ' checked' : '') + '> Só os vigentes</label>' +
+      '</div><div id="cat-out">' + catalogoTabela() + '</div>';
+  }
+
+  function vPanoramaReal() {
+    return head('Panorama de renúncia', 'Quanto o governo federal deixa de arrecadar com benefícios fiscais. Previsão da Receita Federal pra ' + G.ano + '.', false, G.edicao + ' · previsão') +
+      '<div class="p-grid p-grid-3">' +
+        metric('Previsão de renúncia em ' + G.ano, bi(G.total), 'gasto tributário federal') +
+        metric('Peso na arrecadação', fmt(G.pctArrec, 1) + '%', 'da receita administrada pela RFB') +
+        metric('Peso no PIB', fmt(G.pctPib, 2) + '%', 'estimativa para ' + G.ano) +
+      '</div>' +
+      '<div class="p-toolbar"><div class="p-tabs" role="group" aria-label="Visão do panorama">' +
+        PV_ABAS.map((n, i) => '<button type="button" class="p-tab" data-pv="' + i + '" aria-pressed="' + (i === S.pv) + '">' + esc(n) + '</button>').join('') +
+      '</div></div>' +
+      '<section class="p-card" id="pv-corpo">' + pvCorpo() + '</section>' +
+      '<p class="p-note">Fonte: ' + esc(G.fonte) + '. É uma <strong>previsão</strong> (método de perda de arrecadação), não o valor realizado, e cobre só tributos federais.</p>';
+  }
+
+  function bindPanoramaReal() {
+    document.querySelectorAll('.p-tab[data-pv]').forEach((b) => {
+      b.addEventListener('click', () => { S.pv = Number(b.getAttribute('data-pv')); render(); });
+    });
+    if (S.pv === 4) {
+      const atualizar = () => { $('cat-out').innerHTML = catalogoTabela(); };
+      $('cat-q').addEventListener('input', function () { S.cq = this.value; atualizar(); });
+      $('cat-t').addEventListener('change', function () { S.ct = this.value; atualizar(); });
+      $('cat-v').addEventListener('change', function () { S.cv = this.checked; atualizar(); });
+    }
+  }
+
+  /* Mesa real: o custo vem do DGT; retorno e empregos são números do usuário. */
+
+  function vMesaReal() {
+    const lista = G.principais.slice(0, 30);
+    return head('Mesa de análise', 'Compara o custo de um benefício (previsão do DGT) com o retorno que você estima. O veredito é um indicador, não uma conclusão.', false, 'Custo: ' + G.edicao) +
+      '<div class="p-two p-two-mesa">' +
+        '<section class="p-card">' +
+          '<label class="p-label" for="inc">Benefício</label>' +
+          '<select class="p-input" id="inc">' +
+            lista.map((p, i) => '<option value="' + i + '"' + (i === S.mp ? ' selected' : '') + '>' + esc(p[0]) + '</option>').join('') +
+          '</select>' +
+          '<p class="p-metric-label">Custo da renúncia (DGT)</p><p class="p-metric-value" id="mr-custo"></p>' +
+          '<label class="p-label" for="mr">Retorno fiscal bruto <span class="p-hint">sua estimativa, em R$ bi por ano</span></label>' +
+          '<input class="p-input" id="mr" type="number" min="0" step="any" inputmode="decimal" placeholder="ex.: 50">' +
+          '<label class="p-label" for="me">Empregos associados <span class="p-hint">sua estimativa, sem desconto de adicionalidade</span></label>' +
+          '<input class="p-input" id="me" type="number" min="0" step="any" inputmode="decimal" placeholder="ex.: 900000">' +
+          '<div class="p-range-head"><label class="p-label" for="ad">Adicionalidade <span class="p-hint">parte do retorno que só existe por causa do incentivo</span></label><span class="p-range-val" id="adv"></span></div>' +
+          '<input class="p-range" type="range" id="ad" min="10" max="100" step="5">' +
+          '<div class="p-grid p-grid-2" id="mesa-metrics"></div>' +
+        '</section>' +
+        '<section class="p-card">' +
+          '<div class="p-verdict-head"><span class="p-note">Retorno para cada R$ 1 renunciado</span><span class="p-badge" id="vb"></span></div>' +
+          '<p class="p-ratio" id="rt"></p>' +
+          '<div class="p-meter"><div class="p-fill" id="meter"></div></div>' +
+          '<div class="p-meter-scale"><span>R$ 0</span><span>equilíbrio: R$ 1,00</span><span>R$ 2,00</span></div>' +
+          '<p class="p-note p-note-gap" id="mesa-aviso"></p>' +
+          '<p class="p-note">O DGT cobre só renúncias federais e não é completo, então o custo real pode ser maior.</p>' +
+          '<a class="p-link" href="#panorama">← Voltar ao Panorama</a>' +
+        '</section>' +
+      '</div>';
+  }
+
+  function calcMesaReal() {
+    const c = G.principais[S.mp][1] / 1e9;
+    const rv = $('mr').value === '' ? null : Number($('mr').value);
+    const ev = $('me').value === '' ? null : Number($('me').value);
+    S.mr[S.mp] = $('mr').value;
+    S.me[S.mp] = $('me').value;
+    const a = S.a / 100;
+
+    $('mr-custo').textContent = 'R$ ' + fmt(c, 1) + ' bi por ano';
+    $('adv').textContent = S.a + '%';
+
+    const ret = rv !== null && rv >= 0 ? rv * a : null;
+    const emp = ev !== null && ev > 0 ? ev * a : null;
+    const cpe = emp ? (c * 1e6) / emp : null;
+    $('mesa-metrics').innerHTML =
+      metric('Retorno fiscal', ret === null ? '—' : 'R$ ' + fmt(ret, 1) + ' bi', 'com adicionalidade') +
+      metric('Empregos atribuíveis', emp === null ? '—' : fmt(Math.round(emp)), 'com adicionalidade') +
+      metric('Custo por emprego', cpe === null ? '—' : 'R$ ' + fmt(Math.round(cpe)) + ' mil', 'por ano');
+
+    const vb = $('vb');
+    const m = $('meter');
+    if (ret === null) {
+      $('rt').textContent = '—';
+      vb.textContent = 'Sem retorno informado';
+      vb.className = 'p-badge';
+      m.style.width = '0%';
+      m.className = 'p-fill';
+      $('mesa-aviso').textContent = 'Informe o retorno fiscal bruto estimado pra ver o veredito. O DGT traz o custo, mas não o retorno.';
+      return;
+    }
+    const ratio = ret / c;
+    $('rt').textContent = 'R$ ' + fmt(ratio, 2);
+    let texto, cls;
+    if (ratio >= 1) { texto = 'Manter'; cls = 'ok'; }
+    else if (ratio >= 0.5) { texto = 'Revisar desenho'; cls = 'warn'; }
+    else { texto = 'Reavaliar'; cls = 'danger'; }
+    vb.textContent = texto;
+    vb.className = 'p-badge ' + cls;
+    m.style.width = Math.min(100, (ratio / 2) * 100) + '%';
+    m.className = 'p-fill ' + cls;
+    $('mesa-aviso').textContent = 'O resultado depende dos números que você informou e da adicionalidade escolhida.';
+  }
+
+  function bindMesaReal() {
+    $('mr').value = S.mr[S.mp] || '';
+    $('me').value = S.me[S.mp] || '';
+    $('ad').value = S.a;
+    calcMesaReal();
+    $('inc').addEventListener('change', function () { S.mp = Number(this.value); render(); });
+    ['mr', 'me'].forEach((id) => $(id).addEventListener('input', calcMesaReal));
+    $('ad').addEventListener('input', function () { S.a = Number(this.value); calcMesaReal(); });
   }
 
   /* ---------- Panorama ---------- */
@@ -553,10 +744,10 @@
   /* ---------- rotas ---------- */
 
   const ROTAS = [
-    { id: 'panorama', titulo: 'Panorama de renúncia', curto: 'Panorama', view: vPanorama, bind: null },
+    { id: 'panorama', titulo: 'Panorama de renúncia', curto: 'Panorama', view: G ? vPanoramaReal : vPanorama, bind: G ? bindPanoramaReal : null },
     { id: 'cnpj', titulo: 'Consulta CNPJ', curto: 'CNPJ', view: vCnpj, bind: bindCnpj },
     { id: 'divida', titulo: 'Dívida ativa', curto: 'Dívida ativa', view: vDivida, bind: null },
-    { id: 'mesa', titulo: 'Mesa de análise', curto: 'Mesa', view: vMesa, bind: bindMesa },
+    { id: 'mesa', titulo: 'Mesa de análise', curto: 'Mesa', view: G ? vMesaReal : vMesa, bind: G ? bindMesaReal : bindMesa },
     { id: 'impostos', titulo: 'Para onde vai o imposto', curto: 'Impostos', view: vImpostos, bind: bindImpostos }
   ];
 
@@ -567,7 +758,10 @@
     const rota = ROTAS.filter((r) => r.id === partes[0])[0];
     atual = rota ? rota.id : 'panorama';
 
-    if (atual === 'mesa' && partes[1] !== undefined) {
+    if (atual === 'mesa' && G && /^p\d+$/.test(partes[1] || '')) {
+      const i = Number(partes[1].slice(1));
+      if (i < Math.min(30, G.principais.length)) S.mp = i;
+    } else if (atual === 'mesa' && !G && partes[1] !== undefined) {
       const k = Number(partes[1]);
       if (Number.isInteger(k) && k >= 0 && k < D.incentivos.length) {
         S.k = k;
