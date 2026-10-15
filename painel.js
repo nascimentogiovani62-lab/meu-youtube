@@ -13,6 +13,8 @@
 
   const D = window.PAINEL_DADOS;
   const G = window.DGT_PLOA_2026 || null;
+  const PGR = window.PGFN_RESUMO || null;
+  const PG = { html: '', id: 0 };
   const $ = (id) => document.getElementById(id);
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
@@ -27,7 +29,8 @@
   const S = {
     k: 0, a: G ? 50 : D.incentivos[0].a, nv: 0, ar: 0,
     pv: 0, cq: '', ct: '', cv: false,   // Panorama real: aba e filtros do catálogo
-    mp: 0, mr: {}, me: {}                // Mesa real: principal escolhido e números do usuário
+    mp: 0, mr: {}, me: {},               // Mesa real: principal escolhido e números do usuário
+    dv: 0                                // Dívida ativa real: aba
   };
 
   /* ---------- peças comuns ---------- */
@@ -313,10 +316,14 @@
       '<p class="p-metric-value muted">Não conectado</p><p class="p-metric-sub">' + esc(fonte) + '</p></div>';
   }
 
+  function pgfnCardHtml() {
+    return '<div id="pgfn-card">' + (PG.html || pendenteCard('Dívida ativa', 'PGFN')) + '</div>';
+  }
+
   function govPendente(nota) {
     return '<div class="p-grid p-grid-3">' +
         pendenteCard('Recebido do governo', 'Portal da Transparência') +
-        pendenteCard('Dívida ativa', 'PGFN') +
+        pgfnCardHtml() +
         pendenteCard('Sanções', 'CEIS, CNEP e CEPIM') +
       '</div>' + (nota ? '<p class="p-note p-note-gap">' + esc(nota) + '</p>' : '');
   }
@@ -348,7 +355,7 @@
         '</div></div>' +
         '<dl class="p-dl">' + campos.map((c) => '<div><dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1] || '—') + '</dd></div>').join('') + '</dl>' +
       '</section>' +
-      '<div id="gov-out">' + govPendente() + '</div>';
+      '<div id="gov-out">' + govPendente() + '</div><div id="pgfn-det"></div>';
   }
 
   function bindCnpj() {
@@ -378,7 +385,7 @@
           if (!r.ok) { const err = new Error('http'); err.tipo = 'http'; err.status = r.status; throw err; }
           return r.json();
         })
-        .then((d) => { out.innerHTML = cnpjResultado(d, cnpj); carregarGov(cnpj); })
+        .then((d) => { out.innerHTML = cnpjResultado(d, cnpj); carregarPgfn(cnpj); carregarGov(cnpj); })
         .catch((err) => {
           if (err.tipo === 'nao_encontrado') {
             out.innerHTML = cnpjMensagem('CNPJ não encontrado na BrasilAPI. CNPJs muito recentes podem demorar a aparecer.', 'erro');
@@ -562,7 +569,7 @@
 
     return '<div class="p-grid p-grid-3">' +
         metric('Recebido do governo', recebidoValor, recebidoSub, semRecebido ? 'muted' : '') +
-        pendenteCard('Dívida ativa', 'PGFN') +
+        pgfnCardHtml() +
         metric('Sanções', sancValor, sancSub, sancCor) +
       '</div>' +
       '<div class="p-grid p-grid-3">' +
@@ -585,7 +592,7 @@
 
     alvo.innerHTML = '<div class="p-grid p-grid-3">' +
       pendenteCard('Recebido do governo', 'consultando…') +
-      pendenteCard('Dívida ativa', 'PGFN') +
+      pgfnCardHtml() +
       pendenteCard('Sanções', 'consultando…') + '</div>';
 
     sb.functions.invoke(FUNCAO_GOV, { body: { cnpj: cnpj } })
@@ -609,6 +616,167 @@
       .catch(() => {
         alvo.innerHTML = govPendente('Portal da Transparência indisponível: falha de rede ao chamar a função.');
       });
+  }
+
+  /* ---------- Dívida ativa (PGFN): consulta por CNPJ e módulo ---------- */
+
+  const abrev = (v) => {
+    const n = Number(v);
+    if (n >= 1e12) return 'R$ ' + fmt(n / 1e12, 2) + ' tri';
+    if (n >= 1e9) return 'R$ ' + fmt(n / 1e9, 1) + ' bi';
+    if (n >= 1e6) return 'R$ ' + fmt(n / 1e6, 1) + ' mi';
+    return brl(n);
+  };
+
+  const fmtCnpj = (c) => String(c).replace(/^(.{2})(.{3})(.{3})(.{4})(.{2})$/, '$1.$2.$3/$4-$5');
+
+  function pgfnConsultar(cnpj) {
+    if (typeof sb === 'undefined' || !sb.from) return Promise.reject(new Error('sem_supabase'));
+    return sb.from('pgfn_pj').select('*').eq('cnpj_basico', String(cnpj).slice(0, 8))
+      .order('valor_principal', { ascending: false }).limit(100)
+      .then((r) => { if (r.error) throw r.error; return r.data || []; });
+  }
+
+  function pgfnSomas(rows) {
+    const s = { valor: 0, qtd: 0, ajuiz: 0, corr: 0 };
+    rows.forEach((r) => {
+      s.valor += Number(r.valor_principal) || 0;
+      s.qtd += Number(r.qtd_principal) || 0;
+      s.ajuiz += Number(r.valor_ajuizado) || 0;
+      s.corr += Number(r.valor_corresponsavel) || 0;
+    });
+    return s;
+  }
+
+  function pgfnCardResumo(rows) {
+    if (!rows.length) {
+      return metric('Dívida ativa', 'Nenhuma acima do corte', 'a base guarda só CNPJs com dívida a partir de R$ 100 mil', 'muted');
+    }
+    const s = pgfnSomas(rows);
+    const sub = plural(s.qtd, 'inscrição', 'inscrições') +
+      (s.valor > 0 ? ' · ' + fmt((s.ajuiz / s.valor) * 100, 0) + '% ajuizado' : '') +
+      (s.corr > 0 ? ' · corresponsável em ' + abrev(s.corr) : '') +
+      (rows.length > 1 ? ' · ' + rows.length + ' CNPJs do grupo' : '');
+    return metric('Dívida ativa (PGFN)', abrev(s.valor), sub, s.valor > 0 ? 'danger' : '');
+  }
+
+  function pgfnTabela(rows) {
+    const corpo = rows.map((r) =>
+      '<tr><td>' + esc(fmtCnpj(r.cnpj)) + '</td><td>' + esc(r.nome) + '</td><td>' + esc(r.uf) +
+      '</td><td class="num">' + esc(brl(r.valor_principal)) + '</td><td class="num">' + esc(fmt(Number(r.qtd_principal) || 0)) +
+      '</td><td class="num">' + esc(brl(r.valor_ajuizado)) + '</td></tr>').join('');
+    return '<div class="p-table-wrap"><table class="p-table"><thead><tr><th>CNPJ</th><th>Nome</th><th>UF</th>' +
+      '<th class="num">Valor</th><th class="num">Inscrições</th><th class="num">Ajuizado</th></tr></thead><tbody>' + corpo + '</tbody></table></div>';
+  }
+
+  function pgfnNota(rows) {
+    const periodo = rows.length && rows[0].periodo ? ' Período: ' + rows[0].periodo + '.' : '';
+    return '<p class="p-note p-note-gap">Valor consolidado somado só como devedor principal; corresponsáveis não repetem a dívida. ' +
+      'Inclui dívidas garantidas, suspensas e em outras situações, então não é o que o governo espera recuperar. ' +
+      'A base guarda só CNPJs com dívida a partir de R$ 100 mil.' + esc(periodo) + '</p>';
+  }
+
+  function pgfnDetalhe(rows) {
+    if (!rows.length) return '';
+    return '<section class="p-card"><h2>Dívida ativa na PGFN</h2>' + pgfnTabela(rows) + pgfnNota(rows) + '</section>';
+  }
+
+  function atualizarPgfn(det) {
+    const c = $('pgfn-card');
+    if (c) c.innerHTML = PG.html;
+    const d = $('pgfn-det');
+    if (d) d.innerHTML = det;
+  }
+
+  function carregarPgfn(cnpj) {
+    const id = ++PG.id;
+    PG.html = pendenteCard('Dívida ativa', 'consultando…');
+    atualizarPgfn('');
+    pgfnConsultar(cnpj)
+      .then((rows) => {
+        if (id !== PG.id) return;
+        PG.html = pgfnCardResumo(rows);
+        atualizarPgfn(pgfnDetalhe(rows));
+      })
+      .catch((e) => {
+        if (id !== PG.id) return;
+        PG.html = pendenteCard('Dívida ativa', e && e.message === 'sem_supabase' ? 'Supabase não carregado' : 'consulta falhou');
+        atualizarPgfn('');
+      });
+  }
+
+  const DV_ABAS = ['Por situação', 'Por UF', 'Por tipo de receita', 'Maiores devedores', 'Buscar CNPJ'];
+
+  function dvBarras(lista, rotulo, total, limite) {
+    const itens = lista.slice(0, limite || lista.length);
+    const max = Math.max.apply(null, itens.map((x) => x[1]));
+    return itens.map((x) =>
+      bar(rotulo(x[0]) + ' (' + fmt((x[1] / total) * 100, 1) + '%)', x[1], max, abrev(x[1]), '', 'p-bar-wide')).join('');
+  }
+
+  function dvCorpo() {
+    const t = PGR.totais;
+    if (S.dv === 0) {
+      const aj = { SIM: 'Ajuizada', NAO: 'Não ajuizada' };
+      return '<h2>Por situação da inscrição</h2>' + dvBarras(PGR.porSituacao, (n) => n, t.valor) +
+        '<h3 class="p-sub">Por ajuizamento</h3>' + dvBarras(PGR.porAjuizamento, (n) => aj[n] || n, t.valor) +
+        '<p class="p-note p-note-gap">Percentuais sobre o total inscrito. Situação e ajuizamento são os da PGFN. Dívida em cobrança é só uma parte do total.</p>';
+    }
+    if (S.dv === 1) {
+      return '<h2>Por UF do devedor</h2>' + dvBarras(PGR.porUF, (n) => (n === 'Si' ? 'Sem UF' : n), t.valor) +
+        '<p class="p-note p-note-gap">Inclui pessoa física e jurídica. "Sem UF" reúne inscrições sem estado informado.</p>';
+    }
+    if (S.dv === 2) {
+      return '<h2>Por tipo de receita</h2>' + dvBarras(PGR.porReceita, (n) => (n === '—' ? 'Receita não informada' : n.replace(/^R D Ativa - /, '').replace(/^Receita da dívida ativa - /, '')), t.valor) +
+        '<p class="p-note p-note-gap">Os 20 maiores tipos de receita. O restante fica de fora do gráfico.</p>';
+    }
+    if (S.dv === 3) {
+      const linhas = PGR.maioresDevedoresPJ.map((d, i) =>
+        '<tr><td>' + (i + 1) + '</td><td>' + esc(d[1]) + '</td><td>' + esc(d[2]) + '</td><td class="num">' + esc(abrev(d[3])) +
+        '</td><td class="num">' + esc(fmt(d[4])) + '</td></tr>').join('');
+      return '<h2>Maiores devedores (pessoa jurídica)</h2><div class="p-table-wrap"><table class="p-table"><thead><tr><th>#</th><th>Empresa</th><th>UF</th>' +
+        '<th class="num">Valor</th><th class="num">Inscrições</th></tr></thead><tbody>' + linhas + '</tbody></table></div>' +
+        '<p class="p-note p-note-gap">Só devedor principal. Empresa em falência ou recuperação aparece com o nome registrado na PGFN.</p>';
+    }
+    return '<h2>Buscar CNPJ</h2>' +
+      '<form id="dv-form" class="p-form"><label class="p-label" for="dv-cnpj">CNPJ</label>' +
+      '<div class="p-form-row"><input class="p-input" id="dv-cnpj" type="text" inputmode="text" autocomplete="off" placeholder="00.000.000/0000-00">' +
+      '<button class="p-btn" id="dv-btn" type="submit">Buscar</button></div></form><div id="dv-res"></div>';
+  }
+
+  function vDividaReal() {
+    const t = PGR.totais;
+    return head('Dívida ativa', 'Créditos inscritos na dívida ativa da União e do FGTS, da PGFN, em ' + PGR.periodo + '.', false, 'PGFN · ' + PGR.periodo) +
+      '<div class="p-grid p-grid-3">' +
+        metric('Total inscrito', abrev(t.valor), plural(t.inscricoes, 'inscrição', 'inscrições')) +
+        metric('Pessoas jurídicas', abrev(t.valorPJ), fmt((t.valorPJ / t.valor) * 100, 1) + '% do total') +
+        metric('CNPJs na base', fmt(t.devedoresPJ), 'devedores principais ou corresponsáveis') +
+      '</div>' +
+      '<div class="p-toolbar"><div class="p-tabs" role="group" aria-label="Visão da dívida ativa">' +
+        DV_ABAS.map((n, i) => '<button type="button" class="p-tab" data-dv="' + i + '" aria-pressed="' + (i === S.dv) + '">' + esc(n) + '</button>').join('') +
+      '</div></div>' +
+      '<section class="p-card" id="dv-corpo">' + dvCorpo() + '</section>' +
+      '<p class="p-note">Fonte: ' + esc(PGR.fonte) + '. ' + esc(PGR.nota) + ' O valor inscrito não é o que o governo espera recuperar.</p>';
+  }
+
+  function bindDividaReal() {
+    document.querySelectorAll('.p-tab[data-dv]').forEach((b) => {
+      b.addEventListener('click', () => { S.dv = Number(b.getAttribute('data-dv')); render(); });
+    });
+    const form = $('dv-form');
+    if (!form) return;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const cnpj = $('dv-cnpj').value.replace(/[^0-9a-zA-Z]/g, '').toUpperCase();
+      const res = $('dv-res');
+      if (cnpj.length !== 14 || !cnpjValido(cnpj)) { res.innerHTML = cnpjMensagem('CNPJ inválido. Confira os 14 caracteres.', 'erro'); return; }
+      res.innerHTML = cnpjMensagem('Consultando…');
+      pgfnConsultar(cnpj)
+        .then((rows) => {
+          res.innerHTML = '<div class="p-grid p-grid-3">' + pgfnCardResumo(rows) + '</div>' + (rows.length ? pgfnTabela(rows) + pgfnNota(rows) : '');
+        })
+        .catch(() => { res.innerHTML = cnpjMensagem('Não consegui consultar a base da PGFN agora.', 'erro'); });
+    });
   }
 
   /* ---------- Dívida ativa ---------- */
@@ -746,7 +914,7 @@
   const ROTAS = [
     { id: 'panorama', titulo: 'Panorama de renúncia', curto: 'Panorama', view: G ? vPanoramaReal : vPanorama, bind: G ? bindPanoramaReal : null },
     { id: 'cnpj', titulo: 'Consulta CNPJ', curto: 'CNPJ', view: vCnpj, bind: bindCnpj },
-    { id: 'divida', titulo: 'Dívida ativa', curto: 'Dívida ativa', view: vDivida, bind: null },
+    { id: 'divida', titulo: 'Dívida ativa', curto: 'Dívida ativa', view: PGR ? vDividaReal : vDivida, bind: PGR ? bindDividaReal : null },
     { id: 'mesa', titulo: 'Mesa de análise', curto: 'Mesa', view: G ? vMesaReal : vMesa, bind: G ? bindMesaReal : bindMesa },
     { id: 'impostos', titulo: 'Para onde vai o imposto', curto: 'Impostos', view: vImpostos, bind: bindImpostos }
   ];
