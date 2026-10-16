@@ -918,7 +918,7 @@
     { id: 'mesa', titulo: 'Mesa de análise', curto: 'Mesa', view: G ? vMesaReal : vMesa, bind: G ? bindMesaReal : bindMesa },
     { id: 'impostos', titulo: 'Para onde vai o imposto', curto: 'Impostos', view: vImpostos, bind: bindImpostos }
   ];
-
+  if (IG) ROTAS.splice(3, 0, { id: 'igrejas', titulo: 'Igrejas e redes', curto: 'Igrejas', view: IG.view, bind: IG.bind });
   let atual = 'panorama';
 
   function lerHash() {
