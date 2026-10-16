@@ -908,7 +908,7 @@
       b.addEventListener('click', () => { S.nv = Number(b.getAttribute('data-nv')); render(); });
     });
   }
-
+  const IG = window.PAINEL_IGREJAS ? window.PAINEL_IGREJAS({ head, metric, bar, esc, fmt, plural, $, render }) : null;
   /* ---------- rotas ---------- */
 
   const ROTAS = [
