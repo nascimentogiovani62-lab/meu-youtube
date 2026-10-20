@@ -14,7 +14,8 @@ window.PAINEL_IGREJAS = function (H) {
   const fmt = H.fmt, plural = H.plural, $ = H.$, render = H.render;
 
   const ARQUIVO = 'igrejas_ribeirao_preto.json';
-  const ABAS = ['Panorama', 'Redes', 'Bairros', 'Lista', 'Evolução', 'Sócios'];
+  const ARQ_TERR = 'territorio_rp.json';
+  const ABAS = ['Panorama', 'Redes', 'Bairros', 'Território', 'Lista', 'Evolução', 'Sócios'];
   const POR_PAG = 30;
   const EV = 'Evangélica/protestante';
   const OUTRAS = ['Outras tradições', 'Judaica', 'Islâmica', 'Mórmon (SUD)', 'Adventista'];
@@ -22,6 +23,7 @@ window.PAINEL_IGREJAS = function (H) {
   const M = { tab: 0, q: '', den: '', bai: '', pag: 0 };
   let L = null, R = [], FORA = 0, ERRO = '', INICIOU = false;
   let DIV = null, DIV_ERRO = false;
+  let T = null, T_ERRO = false;
 
   const norm = (s) => String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const moeda = (v) => 'R$ ' + fmt(v, 0);
@@ -54,6 +56,10 @@ window.PAINEL_IGREJAS = function (H) {
   function iniciar() {
     if (INICIOU) return;
     INICIOU = true;
+    fetch(ARQ_TERR)
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then((j) => { T = j; render(); })
+      .catch(() => { T_ERRO = true; render(); });
     fetch(ARQUIVO)
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then((j) => {
@@ -211,12 +217,76 @@ window.PAINEL_IGREJAS = function (H) {
       'O CPF vem mascarado e há risco de homônimos, então cada ligação é "a verificar". Nomes de pessoas físicas só entram depois de revisão jurídica.</p>';
   }
 
+
+  /* ---------- território: templos x renda por subsetor (IBGE, Censo 2022) ---------- */
+
+  const soma = (a, k) => a.reduce((s, x) => s + x[k], 0);
+
+  function dispersao(S) {
+    const W = 560, Ht = 290, mx = 46, my = 14, xm = 17000, ym = 50;
+    const X = (v) => mx + (v / xm) * (W - mx - 12);
+    const Y = (v) => Ht - 40 - (v / ym) * (Ht - 40 - my);
+    const grade = [0, 10, 20, 30, 40, 50].map((v) =>
+      '<line x1="' + mx + '" x2="' + (W - 12) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="var(--line)"/>' +
+      '<text x="' + (mx - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end" font-size="11" fill="var(--ink-dim)">' + v + '</text>').join('');
+    const xs = [2000, 5000, 8000, 11000, 14000, 17000].map((v) =>
+      '<text x="' + X(v) + '" y="' + (Ht - 22) + '" text-anchor="middle" font-size="11" fill="var(--ink-dim)">' + fmt(v / 1000) + ' mil</text>').join('');
+    const bolas = S.filter((s) => s.pop >= 3000).map((s) => {
+      const y = (s.templos / s.pop) * 1e4;
+      return '<circle cx="' + X(s.renda) + '" cy="' + Y(Math.min(y, ym)) + '" r="' + (3 + Math.sqrt(s.pop) / 40).toFixed(1) +
+        '" fill="var(--accent)" fill-opacity="0.55" stroke="var(--accent)"><title>' + esc(s.nome) + ': ' + fmt(y, 1) +
+        ' templos por 10 mil moradores, renda média R$ ' + fmt(s.renda) + '</title></circle>';
+    }).join('');
+    return '<div class="p-table-wrap"><svg viewBox="0 0 ' + W + ' ' + Ht + '" role="img" style="width:100%;min-width:420px;height:auto" ' +
+      'aria-label="Dispersão: renda média do responsável contra templos por 10 mil moradores, por subsetor">' + grade + xs + bolas +
+      '<text x="' + (mx + (W - mx - 12) / 2) + '" y="' + (Ht - 4) + '" text-anchor="middle" font-size="11" fill="var(--ink-dim)">Renda média do responsável (R$ por mês)</text>' +
+      '<text transform="rotate(-90 11 ' + (Ht / 2 - 10) + ')" x="11" y="' + (Ht / 2 - 10) + '" text-anchor="middle" font-size="11" fill="var(--ink-dim)">Templos por 10 mil moradores</text></svg></div>';
+  }
+
+  function pTerritorio() {
+    if (T_ERRO) return '<p class="p-msg erro">Não consegui carregar ' + esc(ARQ_TERR) + '. Confira se o arquivo está na mesma pasta do painel.html.</p>';
+    if (!T) return '<p class="p-msg">Carregando…</p>';
+    const S = T.subsetores, F = [1, 2, 3, 4, 5];
+    const faixa = (k) => S.filter((s) => s.q === k);
+    const taxa = (campo, k) => (soma(faixa(k), campo) / soma(faixa(k), 'pop')) * 1e4;
+    const tt = F.map((k) => taxa('templos', k)), max = Math.max.apply(null, tt);
+    const rot = (f) => 'R$ ' + fmt(f.renda_min / 1000, 1) + ' a ' + fmt(f.renda_max / 1000, 1) + ' mil';
+    const barras = T.faixas.map((f, i) =>
+      bar('Faixa ' + f.q + (f.q === 1 ? ' (mais pobre)' : f.q === 5 ? ' (mais rica)' : '') + ' · ' + rot(f), tt[i], max, fmt(tt[i], 1), '', 'p-bar-wide')).join('');
+    const linhas = [['Templos', 'templos'], ['Comércio e outras finalidades', 'outros'], ['Ensino', 'ensino'], ['Saúde (inclui clínicas privadas)', 'saude']]
+      .map((r) => {
+        const a = taxa(r[1], 1), b = taxa(r[1], 5);
+        return '<tr><td>' + esc(r[0]) + '</td><td class="num">' + fmt(a, 1) + '</td><td class="num">' + fmt(b, 1) + '</td><td class="num">' + fmt(a / b, 2) + '×</td></tr>';
+      }).join('');
+    const top = S.filter((s) => s.pop >= 3000).map((s) => Object.assign({ r: (s.templos / s.pop) * 1e4 }, s))
+      .sort((a, b) => b.r - a.r).slice(0, 8);
+    const tabTop = top.map((s) => '<tr><td>' + esc(s.nome) + '</td><td class="num">' + fmt(s.pop) + '</td><td class="num">' + fmt(s.templos) +
+      '</td><td class="num">' + fmt(s.r, 1) + '</td><td class="num">R$ ' + fmt(s.renda) + '</td></tr>').join('');
+    return '<div class="p-grid p-grid-3">' +
+        metric('Faixa mais pobre', fmt(tt[0], 1), 'templos por 10 mil moradores') +
+        metric('Faixa mais rica', fmt(tt[4], 1), 'templos por 10 mil moradores') +
+        metric('Razão entre as faixas', fmt(tt[0] / tt[4], 1) + '×', 'faixa 1 contra faixa 5', 'warn') +
+      '</div><section class="p-card"><h2>Templos por 10 mil moradores, por faixa de renda</h2>' + barras +
+        '<p class="p-note">Cada faixa tem cerca de 20% dos moradores, ordenados pela renda média do responsável pelo domicílio. A curva não é uma reta: a faixa 3 tem mais templos que a 2.</p></section>' +
+      '<section class="p-card"><h2>Os outros estabelecimentos se concentram do mesmo jeito?</h2>' +
+        '<div class="p-table-wrap"><table class="p-table"><thead><tr><th>Tipo (por 10 mil moradores)</th><th class="num">Faixa 1</th><th class="num">Faixa 5</th><th class="num">Razão</th></tr></thead><tbody>' + linhas + '</tbody></table></div>' +
+        '<p class="p-note p-note-gap">Razão acima de 1 significa mais densidade na faixa mais pobre. Só os templos são bem mais densos ali; comércio, ensino e saúde são mais raros. A espécie "saúde" do CNEFE inclui consultórios privados, então não mede acesso a postos públicos.</p></section>' +
+      '<section class="p-card"><h2>Cada subsetor</h2>' + dispersao(S) +
+        '<p class="p-note">Cada bolinha é um subsetor com 3 mil moradores ou mais, e o tamanho acompanha a população. Passe o mouse para ver o nome.</p>' +
+        '<h3 class="p-sub">Maiores densidades (3 mil moradores ou mais)</h3><div class="p-table-wrap"><table class="p-table"><thead><tr><th>Subsetor</th><th class="num">Moradores</th><th class="num">Templos</th><th class="num">Por 10 mil</th><th class="num">Renda média</th></tr></thead><tbody>' + tabTop + '</tbody></table></div></section>' +
+      '<p class="p-note">Fonte: ' + esc(T.fonte) + '. Os ' + fmt(T.subsetores.length) + ' subsetores somam ' + fmt(T.populacaoSubsetores) + ' moradores de ' + fmt(T.populacaoMunicipio) + ' no município. ' +
+        fmt(T.templosForaDosSubsetores) + ' dos ' + fmt(T.templosCnefe) + ' estabelecimentos religiosos ficam fora dos subsetores (distritos e zona rural). ' +
+        'Isto mostra onde os templos estão, e não por quê: pode refletir aluguel mais barato ou igrejas pequenas em salas comerciais. O campo de renda e os códigos de espécie ainda precisam ser conferidos no dicionário do IBGE.</p>';
+  }
+
   function corpo() {
-    if (M.tab === 0) return pPanorama();
-    if (M.tab === 1) return '<section class="p-card">' + pRedes() + '</section>';
-    if (M.tab === 2) return '<section class="p-card">' + pBairros() + '</section>';
-    if (M.tab === 3) return '<section class="p-card">' + pLista() + '</section>';
-    if (M.tab === 4) return '<section class="p-card">' + pEvolucao() + '</section>';
+    const aba = ABAS[M.tab];
+    if (aba === 'Panorama') return pPanorama();
+    if (aba === 'Território') return pTerritorio();
+    if (aba === 'Redes') return '<section class="p-card">' + pRedes() + '</section>';
+    if (aba === 'Bairros') return '<section class="p-card">' + pBairros() + '</section>';
+    if (aba === 'Lista') return '<section class="p-card">' + pLista() + '</section>';
+    if (aba === 'Evolução') return '<section class="p-card">' + pEvolucao() + '</section>';
     return '<section class="p-card">' + pSocios() + '</section>';
   }
 
@@ -240,7 +310,7 @@ window.PAINEL_IGREJAS = function (H) {
     document.querySelectorAll('.p-tab[data-ig]').forEach((b) => {
       b.addEventListener('click', () => { M.tab = Number(b.getAttribute('data-ig')); render(); });
     });
-    if (!L || M.tab !== 3) return;
+    if (!L || ABAS[M.tab] !== 'Lista') return;
     const atualizar = () => { $('ig-out').innerHTML = listaHtml(); };
     $('ig-q').addEventListener('input', function () { M.q = this.value; M.pag = 0; atualizar(); });
     $('ig-den').addEventListener('change', function () { M.den = this.value; M.pag = 0; atualizar(); });
