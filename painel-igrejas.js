@@ -324,3 +324,4 @@ window.PAINEL_IGREJAS = function (H) {
 
   return { view: view, bind: bind };
 };
+
