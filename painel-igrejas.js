@@ -2,8 +2,10 @@
    painel-igrejas.js
    Módulo "Igrejas e redes" do painel fiscal.
    Dados: igrejas_ribeirao_preto.json (saída de extrair_igrejas_v2_1.py),
-   na mesma pasta do painel.html. A dívida ativa vem da tabela pgfn_pj
-   do Supabase, por raiz de CNPJ (só dívidas a partir de R$ 100 mil).
+   territorio_rp.json (IBGE, Censo 2022) e socios_rede.json (quadro
+   societário, só entidades), todos na mesma pasta do painel.html.
+   A dívida ativa vem da tabela pgfn_pj do Supabase, por raiz de CNPJ
+   (só dívidas a partir de R$ 100 mil).
    Registro: window.PAINEL_IGREJAS(helpers) devolve { view, bind }.
    ========================================================= */
 
@@ -15,6 +17,10 @@ window.PAINEL_IGREJAS = function (H) {
 
   const ARQUIVO = 'igrejas_ribeirao_preto.json';
   const ARQ_TERR = 'territorio_rp.json';
+  const ARQ_SOC = 'socios_rede.json';
+  /* Passe para false para esconder a seção "Indícios, a verificar" da aba Sócios
+     (por exemplo, até a revisão jurídica). As ligações documentadas continuam. */
+  const MOSTRAR_INDICIOS = true;
   const ABAS = ['Panorama', 'Redes', 'Bairros', 'Território', 'Lista', 'Evolução', 'Sócios'];
   const POR_PAG = 30;
   const EV = 'Evangélica/protestante';
@@ -24,6 +30,7 @@ window.PAINEL_IGREJAS = function (H) {
   let L = null, R = [], FORA = 0, ERRO = '', INICIOU = false;
   let DIV = null, DIV_ERRO = false;
   let T = null, T_ERRO = false;
+  let SOC = null, SOC_ERRO = false;
 
   const norm = (s) => String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const moeda = (v) => 'R$ ' + fmt(v, 0);
@@ -60,6 +67,10 @@ window.PAINEL_IGREJAS = function (H) {
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then((j) => { T = j; render(); })
       .catch(() => { T_ERRO = true; render(); });
+    fetch(ARQ_SOC)
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then((j) => { SOC = j; render(); })
+      .catch(() => { SOC_ERRO = true; render(); });
     fetch(ARQUIVO)
       .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then((j) => {
@@ -207,14 +218,80 @@ window.PAINEL_IGREJAS = function (H) {
       'e a data de uma filial não é a data de chegada da rede à cidade. Use como pista, não como resultado.</p>';
   }
 
+  /* ---------- sócios: entidades e ligações do quadro societário (sem nomes de pessoas) ---------- */
+
+  const mesAno = (s) => (s ? s.slice(5, 7) + '/' + s.slice(0, 4) : '—');
+
   function pSocios() {
-    return '<h2>Quadro societário</h2><div class="p-grid p-grid-2">' +
-      '<div class="p-metric p-metric-off"><p class="p-metric-label">Administradores e sócios</p><p class="p-metric-value muted">Não conectado</p>' +
-      '<p class="p-metric-sub">Receita Federal, tabela de sócios</p></div>' +
-      '<div class="p-metric p-metric-off"><p class="p-metric-label">Pessoas em mais de uma entidade</p><p class="p-metric-value muted">Não conectado</p>' +
-      '<p class="p-metric-sub">cruzamento por nome e dígitos do CPF</p></div></div>' +
-      '<p class="p-note p-note-gap">Quando conectado, mostra quem administra cada rede e quais pessoas aparecem em mais de uma entidade. ' +
-      'O CPF vem mascarado e há risco de homônimos, então cada ligação é "a verificar". Nomes de pessoas físicas só entram depois de revisão jurídica.</p>';
+    if (SOC_ERRO) return '<p class="p-msg erro">Não consegui carregar ' + esc(ARQ_SOC) + '. Confira se o arquivo está na mesma pasta do painel.html.</p>';
+    if (!SOC) return '<p class="p-msg">Carregando…</p>';
+    const ent = SOC.entidades, lig = SOC.ligacoes, E = {};
+    ent.forEach((e) => { E[e.id] = e; });
+    const fund = ent.filter((e) => e.tipo === 'fundacao');
+    const fundadas = lig.filter((l) => l.tipo === 'fundador').map((l) => l.para);
+    const fundacoesLigadas = fund.filter((f) => fundadas.indexOf(f.id) >= 0);
+    const ufs = {}; ent.forEach((e) => { if (e.uf) ufs[e.uf] = 1; });
+    const midia = ent.filter((e) => e.setor === 'Mídia e comunicação');
+    const conferidas = midia.filter((e) => e.outorga).length;
+    const fin = ent.filter((e) => /financ|banc/i.test(e.setor)).length;
+    const participadas = {}; lig.filter((l) => E[l.de] && E[l.de].tipo === 'fundacao').forEach((l) => { participadas[l.para] = 1; });
+    const baixadas = ent.filter((e) => e.situacao !== 'Ativa').length;
+
+    const grade1 = '<div class="p-grid p-grid-3">' +
+        metric('Entidades mapeadas', fmt(ent.length), 'em ' + plural(Object.keys(ufs).length, 'estado', 'estados') + ' · ' + fmt(baixadas) + ' já baixadas') +
+        metric('Ligações documentadas', fmt(lig.length), 'fundador ou sócio, no cadastro da Receita') +
+        metric('Fundações fundadas pela igreja', fundacoesLigadas.length + ' de ' + fund.length, 'as demais não têm vínculo documentado', 'warn') +
+      '</div><div class="p-grid p-grid-3">' +
+        metric('Empresas com fundação sócia', fmt(Object.keys(participadas).length), 'todas de rádio ou TV') +
+        metric('Outorga conferida', conferidas + ' de ' + midia.length, 'entidades de mídia no painel do Ministério das Comunicações', 'muted') +
+        metric('Bancos ou financeiras', fin ? fmt(fin) : 'Nenhuma', 'entre as entidades mapeadas', fin ? 'danger' : '') +
+      '</div>';
+
+    const linha = (e, l) => '<tr><td>' + esc(e.nome) + '</td><td>' + esc(e.uf || '—') + '</td><td>' + esc(e.situacao) +
+      '</td><td>' + esc(mesAno(l.desde)) + '</td><td>' + esc(e.outorga || 'Não conferida') + '</td></tr>';
+    const tabela = (rotulo, itens) => '<div class="p-table-wrap"><table class="p-table"><thead><tr><th>' + esc(rotulo) +
+      '</th><th>UF</th><th>Situação</th><th>Desde</th><th>Outorga</th></tr></thead><tbody>' +
+      itens.map((l) => linha(E[l.para], l)).join('') + '</tbody></table></div>';
+    const porData = (a, b) => (a.desde < b.desde ? -1 : a.desde > b.desde ? 1 : 0);
+
+    const igreja = ent.filter((e) => e.tipo === 'igreja')[0];
+    let docs = '';
+    if (igreja) {
+      const l0 = lig.filter((l) => l.de === igreja.id).sort(porData);
+      if (l0.length) docs += '<h3 class="p-sub">' + esc(igreja.nome) + ' é fundadora de</h3>' + tabela('Fundação', l0);
+    }
+    const semParticipacao = [];
+    fund.forEach((f) => {
+      const ls = lig.filter((l) => l.de === f.id).sort(porData);
+      if (!ls.length) { semParticipacao.push(f); return; }
+      const vinculo = fundadas.indexOf(f.id) >= 0 ? 'fundada pela igreja' : 'vínculo com a igreja não documentado';
+      docs += '<h3 class="p-sub">' + esc(f.nome) + ' · ' + esc(f.uf || '—') + ' · ' + esc(f.situacao) + ' · ' + esc(vinculo) + '</h3>' +
+        '<p class="p-note">É sócia de</p>' + tabela('Empresa', ls);
+    });
+    if (semParticipacao.length) {
+      docs += '<p class="p-note p-note-gap">Sem participação societária encontrada: ' + semParticipacao.map((f) => esc(f.nome)).join('; ') + '.</p>';
+    }
+
+    let ind = '';
+    if (MOSTRAR_INDICIOS && SOC.indicios && SOC.indicios.length) {
+      ind = '<section class="p-card"><h2>Indícios, a verificar</h2>' +
+        '<p class="p-note">Nada desta seção é prova. São coincidências de nome, de telefone ou de administrador entre entidades, que merecem checagem em fonte primária antes de virar afirmação. Nenhuma pessoa é identificada aqui.</p>' +
+        SOC.indicios.map((i) => {
+          const nomes = i.entidades.filter((id) => E[id]).map((id) => esc(E[id].nome) + (E[id].uf ? ' (' + esc(E[id].uf) + ')' : '')).join('; ');
+          const campos = [['O que mostra', i.texto], ['Cuidado', i.cuidado]];
+          return '<details class="p-det"><summary>' + esc(i.titulo) + ' · ' + plural(i.entidades.length, 'entidade', 'entidades') + '</summary><dl class="p-dl p-dl-sm">' +
+            campos.map((c) => '<div><dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1]) + '</dd></div>').join('') +
+            '<div><dt>Entidades</dt><dd>' + nomes + '</dd></div></dl></details>';
+        }).join('') + '</section>';
+    }
+
+    return grade1 +
+      '<section class="p-card"><h2>Quem é sócio de quem (documentado)</h2>' + docs +
+        '<p class="p-note p-note-gap">Ligação documentada é a que aparece no cadastro da Receita: a igreja como fundadora e a fundação como sócia da empresa. ' +
+        'Sócio não é o mesmo que controlador, e o cadastro mostra a situação de hoje, não o histórico completo.</p></section>' + ind +
+      '<p class="p-note">Fonte: ' + esc(SOC.fonte) + ', gerado em ' + esc(SOC.gerado) + '. ' +
+        'Outorga é a autorização federal para explorar rádio ou TV aberta; aparece como "Não conferida" até ser checada no painel de outorgas do Ministério das Comunicações. ' +
+        'Nomes e CPFs de pessoas físicas não entram nesta aba. A UF é a do cadastro de cada entidade.</p>';
   }
 
 
@@ -287,7 +364,7 @@ window.PAINEL_IGREJAS = function (H) {
     if (aba === 'Bairros') return '<section class="p-card">' + pBairros() + '</section>';
     if (aba === 'Lista') return '<section class="p-card">' + pLista() + '</section>';
     if (aba === 'Evolução') return '<section class="p-card">' + pEvolucao() + '</section>';
-    return '<section class="p-card">' + pSocios() + '</section>';
+    return pSocios();
   }
 
   /* ---------- rota ---------- */
@@ -324,4 +401,3 @@ window.PAINEL_IGREJAS = function (H) {
 
   return { view: view, bind: bind };
 };
-
