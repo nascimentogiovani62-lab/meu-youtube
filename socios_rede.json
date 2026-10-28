@@ -1,0 +1,578 @@
+{
+ "gerado": "2026-10-28",
+ "fonte": "Receita Federal, dados abertos do CNPJ (quadro societário e cadastro), referência 2026-10",
+ "rede": {
+  "raiz": "30902803",
+  "nome": "Igreja Internacional da Graça de Deus"
+ },
+ "entidades": [
+  {
+   "id": "30902803",
+   "nome": "Igreja Internacional da Graça de Deus",
+   "tipo": "igreja",
+   "setor": "Religião",
+   "uf": null,
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "11472163",
+   "nome": "Fundação São Paulo de Comunicação (FUSAPA)",
+   "tipo": "fundacao",
+   "setor": "Mídia e comunicação",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "11656382",
+   "nome": "Fundação Espírito Santense de Comunicação (FUESA)",
+   "tipo": "fundacao",
+   "setor": "Mídia e comunicação",
+   "uf": "ES",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "13366355",
+   "nome": "Fundação Graça da Bahia (FUGRAB)",
+   "tipo": "fundacao",
+   "setor": "Mídia e comunicação",
+   "uf": "BA",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "05354891",
+   "nome": "Fundação Internacional de Comunicação (F.I.C.)",
+   "tipo": "fundacao",
+   "setor": "Mídia e comunicação",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "11243767",
+   "nome": "Fundação Mato-Grossense do Sul de Comunicação (FUMAGROS)",
+   "tipo": "fundacao",
+   "setor": "Associativas e sindicais",
+   "uf": "MS",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "10917636",
+   "nome": "Fundação Graça de Goiás (FUGRAG)",
+   "tipo": "fundacao",
+   "setor": "Mídia e comunicação",
+   "uf": "GO",
+   "situacao": "Baixada",
+   "outorga": null
+  },
+  {
+   "id": "00982879",
+   "nome": "Fundação Graça de Deus de Minas Gerais (FUNGRACA)",
+   "tipo": "fundacao",
+   "setor": "Mídia e comunicação",
+   "uf": "MG",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "13860381",
+   "nome": "Fundação Paraense de Comunicação (FUPAR)",
+   "tipo": "fundacao",
+   "setor": "Mídia e comunicação",
+   "uf": "PA",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "28417129",
+   "nome": "MEAIPE Empresa de Comunicações Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "ES",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "63892814",
+   "nome": "Rádio FM Jardim de Cajobi Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "44879591",
+   "nome": "Rádio Nova Dracena Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "15929060",
+   "nome": "Sociedade Campograndense de Televisão Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "MS",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "01880893",
+   "nome": "TV Primavera de Criciúma Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "SC",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "13985114",
+   "nome": "Televisão Sul Bahia de Teixeira de Freitas Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "BA",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "16195224",
+   "nome": "Rádio Regional de Conquista Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "BA",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "03224045",
+   "nome": "Rede Centro Oeste de Rádio e Televisão Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "MS",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "11422226",
+   "nome": "Vitória Empresa de Radiodifusão de Sons e Imagens Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "49113084",
+   "nome": "Rádio Sales Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "SP",
+   "situacao": "Baixada",
+   "outorga": null
+  },
+  {
+   "id": "11422783",
+   "nome": "Sistema de Rádio e Televisão Prosperidade Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RJ",
+   "situacao": "Baixada",
+   "outorga": null
+  },
+  {
+   "id": "01783035",
+   "nome": "Sistema de Comunicações Patrocínio Paulista Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "02423695",
+   "nome": "Farol Radiodifusão Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RS",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "03842001",
+   "nome": "Rádio FM de Comunicação Frutal Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "MG",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "11422257",
+   "nome": "Empresa de Radiodifusão Conquista Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "23372147",
+   "nome": "Rádio Metropolitana de Vespasiano Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "MG",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "24069718",
+   "nome": "Rádio Satélite Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "PE",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "27642529",
+   "nome": "Rádio Musical de Cantagalo Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "02443577",
+   "nome": "Academia Teológica da Graça de Deus",
+   "tipo": "outra",
+   "setor": "Educação",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "20708159",
+   "nome": "Agência de Viagens e Turismo Wonders Ltda",
+   "tipo": "outra",
+   "setor": "Serviços profissionais e de apoio",
+   "uf": "RJ",
+   "situacao": "Baixada",
+   "outorga": null
+  },
+  {
+   "id": "01484777",
+   "nome": "Associação Assistencial Graça de Deus (PROGRAÇA)",
+   "tipo": "outra",
+   "setor": "Outros",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "16692280",
+   "nome": "Boa Ventura Empresa de Serviço de Acesso Condicionado Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "28339349",
+   "nome": "Graça Artes Gráficas e Editora Ltda",
+   "tipo": "outra",
+   "setor": "Comércio",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "11292373",
+   "nome": "Graça Filmes Produtora e Distribuidora Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "11449902",
+   "nome": "Gravadora do Povo de Deus Ltda",
+   "tipo": "outra",
+   "setor": "Comércio",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "03158975",
+   "nome": "Indústrias Gráficas O Estado Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "07473281",
+   "nome": "Instituto Superior de Tecnologia (ISTEC)",
+   "tipo": "outra",
+   "setor": "Serviços profissionais e de apoio",
+   "uf": "SP",
+   "situacao": "Baixada",
+   "outorga": null
+  },
+  {
+   "id": "04425426",
+   "nome": "Rádio e Televisão Modelo Paulista Ltda",
+   "tipo": "empresa",
+   "setor": "Outros",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "60073597",
+   "nome": "Rádio Rio Graça Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "31238749",
+   "nome": "Sem Igual Empreendimentos Imobiliários Ltda",
+   "tipo": "outra",
+   "setor": "Construção",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "12381367",
+   "nome": "Shopping do Povo Evangélico Comércio Ltda",
+   "tipo": "outra",
+   "setor": "Comércio",
+   "uf": "SP",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "03862216",
+   "nome": "Televisão Cidade Modelo Ltda",
+   "tipo": "empresa",
+   "setor": "Mídia e comunicação",
+   "uf": "MS",
+   "situacao": "Ativa",
+   "outorga": null
+  },
+  {
+   "id": "54485675",
+   "nome": "União Seleções Ltda",
+   "tipo": "outra",
+   "setor": "Serviços profissionais e de apoio",
+   "uf": "RJ",
+   "situacao": "Ativa",
+   "outorga": null
+  }
+ ],
+ "ligacoes": [
+  {
+   "de": "30902803",
+   "para": "11472163",
+   "tipo": "fundador",
+   "desde": "2010-01",
+   "nivel": "documentado"
+  },
+  {
+   "de": "30902803",
+   "para": "11656382",
+   "tipo": "fundador",
+   "desde": "2008-11",
+   "nivel": "documentado"
+  },
+  {
+   "de": "05354891",
+   "para": "01880893",
+   "tipo": "socio",
+   "desde": "2006-02",
+   "nivel": "documentado"
+  },
+  {
+   "de": "05354891",
+   "para": "63892814",
+   "tipo": "socio",
+   "desde": "2025-06",
+   "nivel": "documentado"
+  },
+  {
+   "de": "05354891",
+   "para": "15929060",
+   "tipo": "socio",
+   "desde": "2009-01",
+   "nivel": "documentado"
+  },
+  {
+   "de": "05354891",
+   "para": "13985114",
+   "tipo": "socio",
+   "desde": "2015-11",
+   "nivel": "documentado"
+  },
+  {
+   "de": "05354891",
+   "para": "44879591",
+   "tipo": "socio",
+   "desde": "2019-07",
+   "nivel": "documentado"
+  },
+  {
+   "de": "13366355",
+   "para": "16195224",
+   "tipo": "socio",
+   "desde": "2013-10",
+   "nivel": "documentado"
+  },
+  {
+   "de": "11656382",
+   "para": "28417129",
+   "tipo": "socio",
+   "desde": "2016-06",
+   "nivel": "documentado"
+  },
+  {
+   "de": "11243767",
+   "para": "03224045",
+   "tipo": "socio",
+   "desde": "2012-09",
+   "nivel": "documentado"
+  },
+  {
+   "de": "11243767",
+   "para": "11422226",
+   "tipo": "socio",
+   "desde": "2009-12",
+   "nivel": "documentado"
+  },
+  {
+   "de": "11243767",
+   "para": "49113084",
+   "tipo": "socio",
+   "desde": "2023-01",
+   "nivel": "documentado"
+  },
+  {
+   "de": "10917636",
+   "para": "11422783",
+   "tipo": "socio",
+   "desde": "2009-12",
+   "nivel": "documentado"
+  }
+ ],
+ "indicios": [
+  {
+   "id": "admin_nove",
+   "titulo": "Rádios e TVs com um mesmo administrador que consta no cadastro da igreja",
+   "entidades": [
+    "01783035",
+    "02423695",
+    "03842001",
+    "11422257",
+    "23372147",
+    "24069718",
+    "27642529",
+    "13985114",
+    "16195224"
+   ],
+   "n_pessoas": 1,
+   "texto": "Uma pessoa cujo nome e dígitos centrais do CPF coincidem com os de alguém que consta no cadastro da matriz da igreja aparece como sócio-administrador de 8 destas 9 empresas de rádio e TV (e como sócio na outra), em 6 estados. Duas delas têm fundação sócia: a F.I.C. (Televisão Sul Bahia) e a FUGRAB (Rádio Regional de Conquista).",
+   "cuidado": "A coincidência é por nome e 6 dígitos do CPF, que o cadastro mascara: homônimo não está descartado."
+  },
+  {
+   "id": "fic_academia",
+   "titulo": "O administrador de três empresas da F.I.C. também dirige a Academia Teológica",
+   "entidades": [
+    "01880893",
+    "15929060",
+    "44879591",
+    "02443577"
+   ],
+   "n_pessoas": 1,
+   "texto": "A mesma pessoa administra a TV Primavera de Criciúma, a Sociedade Campograndense de Televisão e a Rádio Nova Dracena, e aparece como diretor da Academia Teológica da Graça de Deus.",
+   "cuidado": "Reconhecimento por nome e 6 dígitos do CPF, entre rodadas diferentes da coleta."
+  },
+  {
+   "id": "grupo_graca",
+   "titulo": "Grupo de 12 entidades (comércio, gráficas e emissoras) com pessoas em comum",
+   "entidades": [
+    "20708159",
+    "01484777",
+    "28339349",
+    "11292373",
+    "11449902",
+    "03158975",
+    "04425426",
+    "60073597",
+    "31238749",
+    "12381367",
+    "03862216",
+    "54485675"
+   ],
+   "n_pessoas": 11,
+   "texto": "Gráficas, produtora, gravadora, comércio, imobiliária, turismo, emissoras e uma associação. 11 pessoas aparecem nessas entidades, e 6 delas em mais de uma (a mais ligada, em 6). Aqui os sócios são pessoas, não fundações, e não há banco nem financeira.",
+   "cuidado": "Nada neste grupo liga o conjunto à igreja por documento. A ligação veio de telefone e nome em comum."
+  },
+  {
+   "id": "pares",
+   "titulo": "Pares de entidades com a mesma pessoa à frente",
+   "entidades": [
+    "10917636",
+    "16692280",
+    "03224045",
+    "11422226"
+   ],
+   "n_pessoas": 2,
+   "texto": "Quem preside a FUGRAG (Goiás) também é sócio da Boa Ventura (RJ). O mesmo administrador está à frente da Rede Centro Oeste (MS) e da Vitória (RJ), que têm a FUMAGROS como sócia.",
+   "cuidado": "Só indica gestão em comum, não controle econômico."
+  },
+  {
+   "id": "telefone",
+   "titulo": "Telefone ou fax em comum com a matriz ou as fundações",
+   "entidades": [
+    "11243767",
+    "28339349",
+    "11449902",
+    "12381367",
+    "31238749",
+    "02443577",
+    "16692280",
+    "00982879",
+    "10917636",
+    "13860381",
+    "11292373",
+    "03158975",
+    "04425426",
+    "60073597",
+    "03224045",
+    "03862216",
+    "11422226",
+    "01484777",
+    "20708159",
+    "07473281",
+    "54485675"
+   ],
+   "n_pessoas": 0,
+   "texto": "Estas 21 entidades usam o mesmo número de telefone ou fax cadastrado pelas fundações ou pela matriz. Foi como chegamos a elas.",
+   "cuidado": "É a pista mais fraca: telefone repetido pode ser contador, escritório ou prédio comum."
+  }
+ ]
+}
